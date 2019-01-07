@@ -1,10 +1,31 @@
 // NativeScript core theme
 // @see https://docs.nativescript.org/ui/theme
 @import '~nativescript-theme-core/scss/blue';
-
 // Override variables here
-
 @import '~nativescript-theme-core/scss/index';
-
 // Global SCSS styling
 // @see https://docs.nativescript.org/ui/styling
+
+.fa {
+    font-family: FontAwesome;
+}
+
+.link-container {
+    margin-top: 20;
+}
+
+.links {
+    text-decoration: underline;
+    color: grey;
+}
+
+ActionBar {
+    background-color: blue;
+    color: white;
+}
+
+.login-btn {
+    background-color: blue;
+    color: white;
+    margin-top: 15;
+}

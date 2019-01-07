@@ -1,8 +1,17 @@
 <template>
   <Page class="page">
-    <ActionBar title="Save our Stuff" android:flat="true"/>
+    <ActionBar
+      title="Register"
+      android:flat="true"
+    >
+      <NavigationButton
+        text="Go Back"
+        android.systemIcon="ic_menu_back"
+        @tap="$navigateTo(login)"
+      />
+    </ActionBar>
     <ScrollView>
-      <FlexboxLayout
+      <!-- <FlexboxLayout
         alignItems="center"
         alignContent="center"
         justifyContent="center"
@@ -28,14 +37,14 @@
             secure="true"
             hint="Confirm Password"
           />
-          <Button v-if="!showConfirmPassword" @tap="attemptLogin()" class="login-btn" text="Login"/>
+          <Button v-if="!showConfirmPassword && !loggedIn" @tap="attemptLogin()" class="login-btn" text="Login"/>
           <Button
             v-if="showConfirmPassword"
             @tap="attemptRegister()"
             class="login-btn"
             text="Register"
           />
-          <Button v-if="loggedIn" @tap="logout()" class="login-btn" text="Logout"/>
+          
         </FlexboxLayout>
         <FlexboxLayout width="70%" class="link-container">
           <Label
@@ -62,14 +71,16 @@
             textAlignment="right"
           />
         </FlexboxLayout>
-      </FlexboxLayout>
+      </FlexboxLayout> -->
     </ScrollView>
   </Page>
 </template>
 
 <script>
 import to from "await-to-js";
-import { mapGetters } from 'vuex';
+import { mapGetters } from "vuex";
+import MainScreen from "./MainScreen";
+import LoginScreen from "./LoginScreen";
 
 export default {
   data() {
@@ -77,14 +88,22 @@ export default {
       emailAddress: null,
       password: null,
       confirmPassword: null,
-      showConfirmPassword: false
+      showConfirmPassword: false,
+      login: LoginScreen
     };
-  },  
+  },
   computed: {
     ...mapGetters({
       showLoader: "getShowLoader",
       loggedIn: "getLoggedIn"
     })
+  },
+  watch: {
+    loggedIn(val) {
+      if (val) {
+        this.$navigateTo(MainScreen);
+      }
+    }
   },
   methods: {
     register() {
@@ -93,7 +112,7 @@ export default {
     returnToLogin() {
       this.showConfirmPassword = false;
     },
-    logout() {      
+    logout() {
       this.$store.dispatch("logout");
     },
     attemptLogin() {
@@ -107,20 +126,4 @@ export default {
 </script>
 
 <style scoped>
-.link-container {
-  margin-top: 20;
-}
-.links {
-  text-decoration: underline;
-  color: grey;
-}
-ActionBar {
-  background-color: blue;
-  color: white;
-}
-.login-btn {
-  background-color: blue;
-  color: white;
-  margin-top: 15;
-}
 </style>
