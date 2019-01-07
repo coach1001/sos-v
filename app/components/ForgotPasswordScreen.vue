@@ -1,6 +1,8 @@
 <template>
   <Page class="page">
-    <ActionBar title="Forgot your password" android:flat="true"/>
+    <ActionBar title="Forgot your password" android:flat="true">
+      <NavigationButton text="Go Back" android.systemIcon="ic_menu_back" @tap="$navigateTo(login)"/>
+    </ActionBar>
     <ScrollView>
       <!-- <FlexboxLayout
         alignItems="center"
@@ -62,15 +64,14 @@
             textAlignment="right"
           />
         </FlexboxLayout>
-      </FlexboxLayout> -->
+      </FlexboxLayout>-->
     </ScrollView>
   </Page>
 </template>
 
 <script>
-import to from "await-to-js"
-import { mapGetters } from 'vuex'
-import MainScreen from './MainScreen'
+import { mapGetters } from "vuex";
+import LoginScreen from "./LoginScreen";
 
 export default {
   data() {
@@ -78,31 +79,23 @@ export default {
       emailAddress: null,
       password: null,
       confirmPassword: null,
-      showConfirmPassword: false
+      login: LoginScreen
     };
-  },  
+  },
   computed: {
     ...mapGetters({
-      showLoader: "getShowLoader",
-      loggedIn: "getLoggedIn"
+      showLoader: "getShowLoader"
     })
-  },
-  watch: {
-    loggedIn (val) {
-      if(val) {
-        this.$navigateTo(MainScreen);
-      }
-    }
   },
   methods: {
     register() {
-      this.showConfirmPassword = true
+      this.showConfirmPassword = true;
     },
     returnToLogin() {
-      this.showConfirmPassword = false
+      this.showConfirmPassword = false;
     },
-    logout() {      
-      this.$store.dispatch("logout")
+    logout() {
+      this.$store.dispatch("logout");
     },
     attemptLogin() {
       this.$store.dispatch("login", {
@@ -115,5 +108,4 @@ export default {
 </script>
 
 <style scoped>
-
 </style>

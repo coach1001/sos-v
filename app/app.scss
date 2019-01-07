@@ -5,27 +5,19 @@
 @import '~nativescript-theme-core/scss/index';
 // Global SCSS styling
 // @see https://docs.nativescript.org/ui/styling
-
 .fa {
-    font-family: FontAwesome;
+  font-family: FontAwesome;
 }
 
 .link-container {
-    margin-top: 20;
+  margin-top: 20;
 }
 
 .links {
-    text-decoration: underline;
-    color: grey;
-}
-
-ActionBar {
-    background-color: blue;
-    color: white;
+  text-decoration: underline;
+  color: gray;
 }
 
 .login-btn {
-    background-color: blue;
-    color: white;
-    margin-top: 15;
+  margin-top: 15;
 }

@@ -1,9 +1,6 @@
 <template>
   <Page class="page">
-    <ActionBar
-      title="Login"
-      android:flat="true"
-    />
+    <ActionBar title="Login" android:flat="true"/>
     <ScrollView>
       <FlexboxLayout
         alignItems="center"
@@ -11,32 +8,13 @@
         justifyContent="center"
         flexDirection="column"
       >
-        <ActivityIndicator :busy="showLoader" />
-        <FlexboxLayout
-          width="70%"
-          flexDirection="column"
-        >
-          <TextField
-            v-model="emailAddress"
-            :text="emailAddress"
-            hint="Email Address"
-          />
-          <TextField
-            v-model="password"
-            :text="password"
-            secure="true"
-            hint="Password"
-          />
-          <Button
-            @tap="login()"
-            class="login-btn"
-            text="Login"
-          />
+        <ActivityIndicator :busy="showLoader"/>
+        <FlexboxLayout width="70%" flexDirection="column">
+          <TextField v-model="emailAddress" :text="emailAddress" hint="Email Address"/>
+          <TextField v-model="password" :text="password" secure="true" hint="Password"/>
+          <Button @tap="login()" class="login-btn" text="Login"/>
         </FlexboxLayout>
-        <FlexboxLayout
-          width="70%"
-          class="link-container"
-        >
+        <FlexboxLayout width="70%" class="link-container">
           <Label
             @tap="$navigateTo(forgotPassword)"
             class="h3 links"
@@ -70,33 +48,55 @@ export default {
       emailAddress: null,
       password: null,
       forgotPassword: ForgotPasswordScreen,
-      register: RegisterScreen,
+      register: RegisterScreen
     };
   },
   computed: {
     ...mapGetters({
       showLoader: "getShowLoader",
-      loggedIn: "getLoggedIn"
+      loggedIn: "getLoggedIn",
+      error: "getError"
     })
   },
   watch: {
     loggedIn(val) {
-      if (val) {
+      if (val) {        
         this.$navigateTo(MainScreen);
+      }
+    },
+    error(val) {      
+      if(val) {
+        alert(val);
+        this.$store.commit("setError", null);
       }
     }
   },
   methods: {
-    register() {},
     login() {
-      this.$store.dispatch("login", {
-        emailAddress: this.emailAddress,
-        password: this.password
-      });
+      if (this.emailAddress && this.password) {
+        this.$store.dispatch("login", {
+          emailAddress: this.emailAddress,
+          password: this.password
+        });
+      } else {
+        alert("Please provide a valid email address and password");
+      }
     }
   }
 };
 </script>
 
 <style scoped>
+.link-container {
+  margin-top: 20;
+}
+
+.links {
+  text-decoration: underline;
+  color: gray;
+}
+
+.login-btn {
+  margin-top: 15;
+}
 </style>

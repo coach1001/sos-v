@@ -1,17 +1,10 @@
 <template>
   <Page class="page">
-    <ActionBar
-      title="Register"
-      android:flat="true"
-    >
-      <NavigationButton
-        text="Go Back"
-        android.systemIcon="ic_menu_back"
-        @tap="$navigateTo(login)"
-      />
+    <ActionBar title="Register" android:flat="true">
+      <NavigationButton text="Go Back" android.systemIcon="ic_menu_back" @tap="$navigateTo(login)"/>
     </ActionBar>
     <ScrollView>
-      <!-- <FlexboxLayout
+      <FlexboxLayout
         alignItems="center"
         alignContent="center"
         justifyContent="center"
@@ -19,67 +12,23 @@
       >
         <ActivityIndicator :busy="showLoader"/>
         <FlexboxLayout width="70%" flexDirection="column">
-          <TextField 
-            v-model="emailAddress" 
-            :text="emailAddress" 
-            hint="Email Address"
-          />
-          <TextField 
-            v-model="password" 
-            :text="password" 
-            secure="true" 
-            hint="Password"
-          />
+          <TextField v-model="emailAddress" :text="emailAddress" hint="Email Address"/>
+          <TextField v-model="password" :text="password" secure="true" hint="Password"/>
           <TextField
-            v-if="showConfirmPassword"
             v-model="confirmPassword"
             :text="confirmPassword"
             secure="true"
             hint="Confirm Password"
           />
-          <Button v-if="!showConfirmPassword && !loggedIn" @tap="attemptLogin()" class="login-btn" text="Login"/>
-          <Button
-            v-if="showConfirmPassword"
-            @tap="attemptRegister()"
-            class="login-btn"
-            text="Register"
-          />
-          
+          <Button @tap="register()" class="login-btn" text="Register"/>
         </FlexboxLayout>
-        <FlexboxLayout width="70%" class="link-container">
-          <Label
-            v-if="!showConfirmPassword"
-            class="h3 links"
-            width="50%"
-            text="Forgot Password"
-            textAlignment="left"
-          />
-          <Label
-            v-if="showConfirmPassword"
-            @tap="returnToLogin()"
-            class="h3 links"
-            width="50%"
-            text="Back to Login"
-            textAlignment="left"
-          />
-          <Label
-            v-if="!showConfirmPassword"
-            @tap="register()"
-            class="h3 links"
-            width="50%"
-            text="Register"
-            textAlignment="right"
-          />
-        </FlexboxLayout>
-      </FlexboxLayout> -->
+      </FlexboxLayout>
     </ScrollView>
   </Page>
 </template>
 
 <script>
-import to from "await-to-js";
 import { mapGetters } from "vuex";
-import MainScreen from "./MainScreen";
 import LoginScreen from "./LoginScreen";
 
 export default {
@@ -88,42 +37,60 @@ export default {
       emailAddress: null,
       password: null,
       confirmPassword: null,
-      showConfirmPassword: false,
       login: LoginScreen
     };
   },
   computed: {
     ...mapGetters({
       showLoader: "getShowLoader",
-      loggedIn: "getLoggedIn"
+      userRegistered: "getUserRegistered"
     })
   },
   watch: {
-    loggedIn(val) {
+    userRegistered(val) {
+      console.log("USER REGISTERED", val);
       if (val) {
-        this.$navigateTo(MainScreen);
+        alert(
+          "Registered successfully, please check your email to activate you account."
+        ).then(() => {
+          this.$navigateTo(this.login);
+        });
       }
     }
   },
   methods: {
     register() {
-      this.showConfirmPassword = true;
-    },
-    returnToLogin() {
-      this.showConfirmPassword = false;
-    },
-    logout() {
-      this.$store.dispatch("logout");
-    },
-    attemptLogin() {
-      this.$store.dispatch("login", {
-        emailAddress: this.emailAddress,
-        password: this.password
-      });
+      if (
+        this.emailAddress &&
+        this.password &&
+        this.confirmPassword &&
+        this.password === this.confirmPassword
+      ) {
+        this.$store.dispatch("register", {
+          emailAddress: this.emailAddress,
+          password: this.password
+        });
+      } else {
+        alert(
+          "Please provide a valid email address and password and ensure that the passwords match"
+        );
+      }
     }
   }
 };
 </script>
 
 <style scoped>
+.link-container {
+  margin-top: 20;
+}
+
+.links {
+  text-decoration: underline;
+  color: gray;
+}
+
+.login-btn {
+  margin-top: 15;
+}
 </style>

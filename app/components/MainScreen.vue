@@ -1,14 +1,9 @@
 <template>
   <Page class="page">
     <ActionBar
-      title="Save our Stuff"
+      title="Slips"
       android:flat="true"
     >
-      <ActionItem
-        ios.systemIcon="2"
-        ios.position="right"
-        android.systemIcon="ic_clear_holo_light"
-      />
     </ActionBar>
     <ScrollView>
       <FlexboxLayout
@@ -22,8 +17,7 @@
           class="h2"
           text="MAIN MENU"
         />
-        <Button
-          v-if="loggedIn"
+        <Button          
           @tap="logout()"
           class="login-btn"
           text="Logout"
@@ -44,9 +38,11 @@ export default {
   },
   computed: {
     ...mapGetters({
-      showLoader: "getShowLoader",
-      loggedIn: "getLoggedIn"
+      showLoader: "getShowLoader"      
     })
+  },
+  created() {
+    this.$store.commit("setLoader", false);
   },
   methods: {
     logout() {

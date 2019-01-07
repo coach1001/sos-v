@@ -23,8 +23,8 @@ Vue.filter('fonticon', fonticon);
 firebase.init({
   onAuthStateChanged: function (data) { // optional but useful to immediately re-logon the user when he re-visits your app
     if (data.loggedIn) {
-      store.commit("setUser", data)
-      store.commit("setLoggedIn", true)
+      store.commit("setUser", data)      
+      store.commit("setLoggedIn", data.user.emailVerified)
     } else {
       store.commit("setUser", null);
       store.commit("setLoggedIn", false)
