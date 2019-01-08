@@ -4,67 +4,24 @@
       <NavigationButton text="Go Back" android.systemIcon="ic_menu_back" @tap="$navigateTo(login)"/>
     </ActionBar>
     <ScrollView>
-      <!-- <FlexboxLayout
+      <FlexboxLayout
         alignItems="center"
         alignContent="center"
         justifyContent="center"
         flexDirection="column"
       >
+        <Image src="res://logo" stretch="aspectFill" height="50%" width="50%"/> 
         <ActivityIndicator :busy="showLoader"/>
-        <FlexboxLayout width="70%" flexDirection="column">
+        <FlexboxLayout width="80%" flexDirection="column">
           <TextField 
+            keyboardType="email"
             v-model="emailAddress" 
             :text="emailAddress" 
             hint="Email Address"
           />
-          <TextField 
-            v-model="password" 
-            :text="password" 
-            secure="true" 
-            hint="Password"
-          />
-          <TextField
-            v-if="showConfirmPassword"
-            v-model="confirmPassword"
-            :text="confirmPassword"
-            secure="true"
-            hint="Confirm Password"
-          />
-          <Button v-if="!showConfirmPassword && !loggedIn" @tap="attemptLogin()" class="login-btn" text="Login"/>
-          <Button
-            v-if="showConfirmPassword"
-            @tap="attemptRegister()"
-            class="login-btn"
-            text="Register"
-          />
-          
+          <Button @tap="requestPasswordReset()" class="login-btn" text="Reset password"/>
         </FlexboxLayout>
-        <FlexboxLayout width="70%" class="link-container">
-          <Label
-            v-if="!showConfirmPassword"
-            class="h3 links"
-            width="50%"
-            text="Forgot Password"
-            textAlignment="left"
-          />
-          <Label
-            v-if="showConfirmPassword"
-            @tap="returnToLogin()"
-            class="h3 links"
-            width="50%"
-            text="Back to Login"
-            textAlignment="left"
-          />
-          <Label
-            v-if="!showConfirmPassword"
-            @tap="register()"
-            class="h3 links"
-            width="50%"
-            text="Register"
-            textAlignment="right"
-          />
-        </FlexboxLayout>
-      </FlexboxLayout>-->
+      </FlexboxLayout>
     </ScrollView>
   </Page>
 </template>
@@ -77,8 +34,6 @@ export default {
   data() {
     return {
       emailAddress: null,
-      password: null,
-      confirmPassword: null,
       login: LoginScreen
     };
   },
@@ -88,24 +43,30 @@ export default {
     })
   },
   methods: {
-    register() {
-      this.showConfirmPassword = true;
-    },
-    returnToLogin() {
-      this.showConfirmPassword = false;
-    },
-    logout() {
-      this.$store.dispatch("logout");
-    },
-    attemptLogin() {
-      this.$store.dispatch("login", {
-        emailAddress: this.emailAddress,
-        password: this.password
-      });
+    requestPasswordReset() {
+      if(this.emailAddress) {
+        this.$store.dispatch("requestPasswordReset", {emailAddress: this.emailAddress});
+        alert("Password reset sent, please check your email.");
+        this.$navigateTo(this.login);
+      } else {
+        alert("Email address is required.");
+      }
     }
   }
 };
 </script>
 
 <style scoped>
+.link-container {
+  margin-top: 20;
+}
+
+.links {
+  text-decoration: underline;
+  color: gray;
+}
+
+.login-btn {
+  margin-top: 15;
+}
 </style>

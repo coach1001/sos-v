@@ -10,9 +10,10 @@
         justifyContent="center"
         flexDirection="column"
       >
+        <Image src="res://logo" stretch="aspectFill" height="50%" width="50%"/> 
         <ActivityIndicator :busy="showLoader"/>
-        <FlexboxLayout width="70%" flexDirection="column">
-          <TextField v-model="emailAddress" :text="emailAddress" hint="Email Address"/>
+        <FlexboxLayout width="80%" flexDirection="column">
+          <TextField keyboardType="email" v-model="emailAddress" :text="emailAddress" hint="Email Address"/>
           <TextField v-model="password" :text="password" secure="true" hint="Password"/>
           <TextField
             v-model="confirmPassword"
@@ -48,8 +49,8 @@ export default {
   },
   watch: {
     userRegistered(val) {
-      console.log("USER REGISTERED", val);
       if (val) {
+        this.$store.commit("setUserRegistered", false);
         alert(
           "Registered successfully, please check your email to activate you account."
         ).then(() => {
@@ -57,6 +58,7 @@ export default {
         });
       }
     }
+
   },
   methods: {
     register() {

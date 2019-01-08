@@ -4,6 +4,13 @@
       title="Slips"
       android:flat="true"
     >
+      <ActionItem
+        @tap="logout()"
+        ios.systemIcon="16"
+        ios.position="right"
+        text="Logout"
+        android.position="popup"
+      ></ActionItem>
     </ActionBar>
     <ScrollView>
       <FlexboxLayout
@@ -12,16 +19,6 @@
         justifyContent="center"
         flexDirection="column"
       >
-        <ActivityIndicator :busy="showLoader" />
-        <Label
-          class="h2"
-          text="MAIN MENU"
-        />
-        <Button          
-          @tap="logout()"
-          class="login-btn"
-          text="Logout"
-        />
       </FlexboxLayout>
     </ScrollView>
   </Page>
@@ -38,7 +35,7 @@ export default {
   },
   computed: {
     ...mapGetters({
-      showLoader: "getShowLoader"      
+      showLoader: "getShowLoader"
     })
   },
   created() {

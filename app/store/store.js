@@ -19,7 +19,7 @@ export const store = new Vuex.Store({
     getError: state => state.error
   },
   actions: {
-    async login({ commit }, payload) {      
+    async login({ commit, dispatch }, payload) {
       commit("setLoader", true);
       const [err, result] = await to(firebase
         .login({
@@ -33,14 +33,29 @@ export const store = new Vuex.Store({
       if (err) {
         commit("setError", "Invalid username or password");
       } else {
-        console.log("LOGGED INTO FIREBASE", result);
         commit("setError", null);
         commit("setUser", result);
         commit("setLoggedIn", result.emailVerified);
-        if(!result.emailVerified) {
-          commit("setError", "Email account not verified.");
-        }        
+        if (!result.emailVerified) {
+          if (!payload.registering) {
+            action("Account not verified", "Cancel", ["Resend verification email"])
+              .then(result => {
+                if(result === "Resend verification email") {
+                  dispatch("sendEmailVerification");
+                }
+            });
+          }
+        }
       }
+    },
+    async requestPasswordReset( {}, payload) {
+      const [err, result] = await to(firebase
+        .resetPassword({
+          email: payload.emailAddress
+        }));  
+        if(err) {
+          commit("setError", "Error when trying to create a password reset request. Please try again.");
+        }
     },
     async register({ commit, dispatch }, payload) {
       commit("setLoader", true);
@@ -49,24 +64,22 @@ export const store = new Vuex.Store({
           email: payload.emailAddress,
           password: payload.password
         }));
-      commit("setLoader", false);
-      
       if (err) {
+        commit("setLoader", false);
         commit("setError", "Account creation failed, email address already used.");
       } else {
-        console.log("ACCOUNT CREATED");
-        commit("setError", null);        
-        await dispatch("login", payload);
-        await dispatch("sendEmailVerification"); 
-        commit("setUserRegistered", true);       
+        commit("setError", null);
+        await dispatch("login", { ...payload, registering: true });
+        commit("setLoader", true);
+        await dispatch("sendEmailVerification");
+        commit("setLoader", false);
+        commit("setUserRegistered", true);
       }
     },
     async sendEmailVerification() {
       const [err, result] = await to(firebase.sendEmailVerification());
       if (err) {
         commit("setError", "There was a problem sending your verification email.");
-      } else {
-        console.log("VERIFICATION SENT");
       }
     },
     logout({ commit }) {

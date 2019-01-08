@@ -8,13 +8,14 @@
         justifyContent="center"
         flexDirection="column"
       >
+        <Image src="res://logo" stretch="aspectFill" height="50%" width="50%"/> 
         <ActivityIndicator :busy="showLoader"/>
-        <FlexboxLayout width="70%" flexDirection="column">
-          <TextField v-model="emailAddress" :text="emailAddress" hint="Email Address"/>
+        <FlexboxLayout width="80%" flexDirection="column">
+          <TextField keyboardType="email" v-model="emailAddress" :text="emailAddress" hint="Email Address"/>
           <TextField v-model="password" :text="password" secure="true" hint="Password"/>
           <Button @tap="login()" class="login-btn" text="Login"/>
         </FlexboxLayout>
-        <FlexboxLayout width="70%" class="link-container">
+        <FlexboxLayout width="80%" class="link-container">
           <Label
             @tap="$navigateTo(forgotPassword)"
             class="h3 links"
