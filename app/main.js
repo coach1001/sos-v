@@ -2,7 +2,7 @@ import Vue from 'nativescript-vue';
 import { TNSFontIcon, fonticon } from 'nativescript-fonticon';
 Vue.registerElement('CardView', () => require('nativescript-cardview').CardView);
 Vue.registerElement('Fab', () => require('nativescript-floatingactionbutton').Fab);
-import LoginScreen from './components/LoginScreen';
+import LaunchScreen from './components/LaunchScreen';
 import VueDevtools from 'nativescript-vue-devtools';
 import firebase from 'nativescript-plugin-firebase';
 import { store } from './store/store.js'
@@ -24,22 +24,22 @@ Vue.filter('fonticon', fonticon);
 firebase.init({
   onAuthStateChanged: function (data) { // optional but useful to immediately re-logon the user when he re-visits your app
     if (data.loggedIn) {
-      store.commit("setUser", data)
-      store.commit("setLoggedIn", data.user.emailVerified)
+      store.commit("setUser", data.user);
+      store.commit("setLoggedIn", data.user.emailVerified);
     } else {
       store.commit("setUser", null);
-      store.commit("setLoggedIn", false)
+      store.commit("setLoggedIn", false);
     }
   },
   persist: true
 }).then(() => {
-  console.log("firebase.init successfull")
+  console.log("firebase.init successfull");
 }, (error) => {
   console.log(`firebase.init error: ${error}`)
 });
 // Vue.prototype.$firebase = firebase;
 
 new Vue({
-  render: h => h('frame', [h(LoginScreen)]),
+  render: h => h('frame', [h(LaunchScreen)]),
   store: store
-}).$start()
+}).$start();

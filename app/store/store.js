@@ -9,7 +9,7 @@ export const store = new Vuex.Store({
     user: null,
     error: null,
     showLoader: false,
-    loggedIn: false,
+    loggedIn: null,
     userRegistered: false
   },
   getters: {
@@ -56,6 +56,10 @@ export const store = new Vuex.Store({
         if(err) {
           commit("setError", "Error when trying to create a password reset request. Please try again.");
         }
+    },
+    async getCurrentUser({commit}) {
+      return firebase.getCurrentUser();
+
     },
     async register({ commit, dispatch }, payload) {
       commit("setLoader", true);

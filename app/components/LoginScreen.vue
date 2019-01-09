@@ -82,9 +82,6 @@ export default {
         alert("Please provide a valid email address and password");
       }
     }
-  },
-  updated() {
-    console.log(this.loggedIn, "UPDATED");
   }
 };
 </script>
