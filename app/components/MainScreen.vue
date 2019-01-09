@@ -34,6 +34,7 @@
 import to from "await-to-js";
 import { mapGetters } from "vuex";
 import LoginScreen from "./LoginScreen";
+import UploadSlipScreen from "./UploadSlipScreen";
 
 export default {
   data() {
@@ -50,10 +51,10 @@ export default {
   methods: {
     logout() {
       this.$store.dispatch("logout");
-      this.$navigateTo(LoginScreen);
+      this.$navigateTo(LoginScreen, { clearHistory: true });
     },
     addSlip() {
-
+      this.$navigateTo(UploadSlipScreen);
     }
   }
 };

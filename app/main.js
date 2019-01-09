@@ -5,7 +5,11 @@ Vue.registerElement('Fab', () => require('nativescript-floatingactionbutton').Fa
 import LaunchScreen from './components/LaunchScreen';
 import VueDevtools from 'nativescript-vue-devtools';
 import firebase from 'nativescript-plugin-firebase';
-import { store } from './store/store.js'
+import { store } from './store/store.js';
+
+const ModalPicker = require("nativescript-modal-datetimepicker")
+  .ModalDatetimepicker;
+const datePicker = new ModalPicker();
 
 if (TNS_ENV !== 'production') {
   Vue.use(VueDevtools);
@@ -38,6 +42,7 @@ firebase.init({
   console.log(`firebase.init error: ${error}`)
 });
 // Vue.prototype.$firebase = firebase;
+Vue.prototype.$datePicker = datePicker;
 
 new Vue({
   render: h => h('frame', [h(LaunchScreen)]),

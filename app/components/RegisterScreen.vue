@@ -1,7 +1,7 @@
 <template>
   <Page class="page">
     <ActionBar title="Register" android:flat="true">
-      <NavigationButton text="Go Back" android.systemIcon="res://baseline_navigate_before_white_24" @tap="$navigateTo(login)"/>
+      <NavigationButton text="Go Back" android.systemIcon="ic_menu_back" @tap="$navigateTo(login)"/>
     </ActionBar>
     <ScrollView>
       <FlexboxLayout
