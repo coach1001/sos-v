@@ -5,6 +5,8 @@
 @import '~nativescript-theme-core/scss/index';
 // Global SCSS styling
 // @see https://docs.nativescript.org/ui/styling
+@import './filter-select.css';
+
 .fa {
   font-family: FontAwesome;
 }

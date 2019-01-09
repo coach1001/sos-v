@@ -1,9 +1,6 @@
 <template>
   <Page class="page">
-    <ActionBar
-      title="Slips"
-      android:flat="true"
-    >
+    <ActionBar title="Slips" android:flat="true">
       <ActionItem
         @tap="logout()"
         ios.systemIcon="16"
@@ -12,21 +9,20 @@
         android.position="popup"
       ></ActionItem>
     </ActionBar>
-
-		<GridLayout rows="auto, *">
-			<!-- <ListView row="1" items="{{ users }}">
+    <GridLayout rows="auto, *">
+      <!-- <ListView row="1" items="{{ users }}">
 				<ListView.itemTemplate>
 					<Label text="{{ name }}" textWrap="true" />
 				</ListView.itemTemplate>
-			</ListView> -->
-			<Fab
-				@tap="addSlip()"
-				row="1"
-				icon="res://baseline_add_white_36"
-				rippleColor="#f1f1f1"
-				class="fab-button"
-			></Fab>
-		</GridLayout>
+      </ListView>-->
+      <Fab
+        @tap="addSlip()"
+        row="1"
+        icon="res://baseline_add_white_36"
+        rippleColor="#f1f1f1"
+        class="fab-button"
+      ></Fab>
+    </GridLayout>
   </Page>
 </template>
 
@@ -38,7 +34,13 @@ import UploadSlipScreen from "./UploadSlipScreen";
 
 export default {
   data() {
-    return {};
+    return {
+      itemList: [
+        { name: "Item 1", description: "Item 1 description" },
+        { name: "Item 2", description: "Item 2 description" },
+        { name: "Item 3", description: "Item 3 description" }
+      ]
+    };
   },
   computed: {
     ...mapGetters({
@@ -49,6 +51,9 @@ export default {
     this.$store.commit("setLoader", false);
   },
   methods: {
+    onItemTap({ item }) {
+      console.log(`Tapped on ${item.name}`);
+    },
     logout() {
       this.$store.dispatch("logout");
       this.$navigateTo(LoginScreen, { clearHistory: true });
@@ -62,11 +67,11 @@ export default {
 
 <style scoped>
 .fab-button {
-	height: 70;
-	width: 70; 
-	margin: 15;
-	background-color: #ff4081;
-	horizontal-align: right;
-	vertical-align: bottom;
+  height: 70;
+  width: 70;
+  margin: 15;
+  background-color: #ff4081;
+  horizontal-align: right;
+  vertical-align: bottom;
 }
 </style>
