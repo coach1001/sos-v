@@ -12,15 +12,21 @@
         android.position="popup"
       ></ActionItem>
     </ActionBar>
-    <ScrollView>
-      <FlexboxLayout
-        alignItems="center"
-        alignContent="center"
-        justifyContent="center"
-        flexDirection="column"
-      >
-      </FlexboxLayout>
-    </ScrollView>
+
+		<GridLayout rows="auto, *">
+			<!-- <ListView row="1" items="{{ users }}">
+				<ListView.itemTemplate>
+					<Label text="{{ name }}" textWrap="true" />
+				</ListView.itemTemplate>
+			</ListView> -->
+			<Fab
+				@tap="addSlip()"
+				row="1"
+				icon="res://baseline_add_white_36"
+				rippleColor="#f1f1f1"
+				class="fab-button"
+			></Fab>
+		</GridLayout>
   </Page>
 </template>
 
@@ -45,10 +51,21 @@ export default {
     logout() {
       this.$store.dispatch("logout");
       this.$navigateTo(LoginScreen);
+    },
+    addSlip() {
+
     }
   }
 };
 </script>
 
 <style scoped>
+.fab-button {
+	height: 70;
+	width: 70; 
+	margin: 15;
+	background-color: #ff4081;
+	horizontal-align: right;
+	vertical-align: bottom;
+}
 </style>

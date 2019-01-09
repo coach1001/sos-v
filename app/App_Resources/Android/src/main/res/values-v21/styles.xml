@@ -5,6 +5,12 @@
     <style name="AppTheme" parent="AppThemeBase">
         <item name="android:datePickerStyle">@style/SpinnerDatePicker</item>
         <item name="android:timePickerStyle">@style/SpinnerTimePicker</item>
+        <item name="android:actionOverflowButtonStyle">@style/WhiteActionButtonOverflow</item>
+    </style>
+
+    <!-- This style is where you define the tint color of your overflow menu button -->
+    <style name="WhiteActionButtonOverflow" parent="@style/Widget.AppCompat.ActionButton.Overflow">
+        <item name="android:tint">@color/overflow_white</item>
     </style>
 
     <!-- Default style for DatePicker - in spinner mode -->

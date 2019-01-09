@@ -1,7 +1,7 @@
 <template>
   <Page class="page">
     <ActionBar title="Forgot your password" android:flat="true">
-      <NavigationButton text="Go Back" android.systemIcon="ic_menu_back" @tap="$navigateTo(login)"/>
+      <NavigationButton text="Go Back" android.systemIcon="res://baseline_navigate_before_white_24" @tap="$navigateTo(login)"/>
     </ActionBar>
     <ScrollView>
       <FlexboxLayout
@@ -10,7 +10,7 @@
         justifyContent="center"
         flexDirection="column"
       >
-        <Image src="res://logo" stretch="aspectFill" height="50%" width="50%"/> 
+        <!-- <Image src="res://logo" stretch="aspectFill" height="50%" width="50%"/>  -->
         <ActivityIndicator :busy="showLoader"/>
         <FlexboxLayout width="80%" flexDirection="column">
           <TextField 

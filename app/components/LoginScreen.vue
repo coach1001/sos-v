@@ -1,6 +1,5 @@
 <template>
-  <Page class="page">
-    <ActionBar title="Login" android:flat="true"/>
+  <Page class="page" actionBarHidden="true">
     <ScrollView>
       <FlexboxLayout
         alignItems="center"
@@ -62,7 +61,7 @@ export default {
   watch: {
     loggedIn(val) {
       if (val) {        
-        this.$navigateTo(MainScreen);
+        this.$navigateTo(MainScreen, { clearHistory: true });
       }
     },
     error(val) {      
@@ -83,6 +82,9 @@ export default {
         alert("Please provide a valid email address and password");
       }
     }
+  },
+  updated() {
+    console.log(this.loggedIn, "UPDATED");
   }
 };
 </script>
