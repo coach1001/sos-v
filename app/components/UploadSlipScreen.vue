@@ -19,7 +19,7 @@
         />
         <Label text="Picture type" class="tlabel"/>
         <FilterSelect
-          modal_title="Select picture type(s)"
+          modal_title="Picture type(s)"
           hint="..."
           height="100%"
           :items="pictureTypes"
@@ -37,7 +37,8 @@
         <TextField v-model="storeOrInstitution"/>
         <Label text="Store/Institution location" class="tlabel"/>
         <TextField v-model="location"/>
-        <Label text="Warrantee/Guarantee expiration date" class="tlabel"/>
+        <Label text="Warrantee/Guarantee" class="tlabel"/>
+        <Label text="Expiration date" class="slabel"/>
         <TextField
           @tap="openExpirationDatePicker()"
           :text="warranteeGuaranteeExpirationDateText"
@@ -151,12 +152,16 @@ StackLayout {
   margin-right: 20;
 }
 TextField {
-  margin-bottom: 20;
+  margin-bottom: 10;
   margin-right: 30;
 }
 .tlabel {
   font-size: 19%;
   margin-top: 20;
+  color: silver;
+}
+.slabel {
+  font-size: 19%;
   color: silver;
 }
 </style>
