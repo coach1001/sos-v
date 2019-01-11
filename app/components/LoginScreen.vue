@@ -61,13 +61,13 @@ export default {
   watch: {
     loggedIn(val) {
       if (val) {        
-        this.$navigateTo(MainScreen, { clearHistory: true });
+        this.$navigateTo(MainScreen, { clearHistory: true });        
       }
     },
     error(val) {      
       if(val) {
-        alert(val);
-        this.$store.commit("setError", null);
+        this.$store.commit("setError", null);        
+        alert(val);        
       }
     }
   },

@@ -16,12 +16,12 @@
           rippleColor="#f1f1f1"
           class="fab-button"
         ></Fab>
-			  <WrapLayout>
+        <WrapLayout>
           <StackLayout :key="idx" v-for="(img, idx) in images">
-				    <Image :src="img.src" width="75" height="75"/>                          
+            <Image :src="img.path" width="75" height="75"/>
             <Button @tap="removeImage(idx)" text="Remove"/>
           </StackLayout>
-        </WrapLayout>        
+        </WrapLayout>
         <Label text="Picture type" class="tlabel"/>
         <FilterSelect
           modal_title="Picture type(s)"
@@ -37,7 +37,7 @@
           @close="pictureTypeSelectClosed"
         ></FilterSelect>
         <Label text="Item Description" class="tlabel"/>
-        <TextField v-model="storeOrInstitution"/>
+        <TextField v-model="itemDescription"/>
         <Label text="Date of purchase" class="tlabel"/>
         <TextField
           @tap="openDateOfPurchaseDatePicker()"
@@ -59,10 +59,10 @@
         />
         <Label text="Item approximate value" class="tlabel"/>
         <TextField keyboardType="number" v-model="appoximateValue"/>
-        <!-- <Label text="Reminder option" class="h2"/> -->
         <Label text="Notes" class="tlabel"/>
         <TextField v-model="notes"/>
         <ActivityIndicator :busy="showLoader"/>
+        <Button @tap="createSlip" text="Create Slip"/>
       </StackLayout>
     </ScrollView>
   </Page>
@@ -73,17 +73,16 @@ import { mapGetters } from "vuex";
 import MainScreen from "./MainScreen";
 import * as camera from "nativescript-camera";
 import * as imagepicker from "nativescript-imagepicker";
-import { Image } from "tns-core-modules/ui/image";
-import { knownFolders, Folder, File } from "tns-core-modules/file-system";
-
+import * as fs from "tns-core-modules/file-system";
+import * as imageSourceModule from "tns-core-modules/image-source";
 export default {
   data() {
     return {
       images: [],
       mainScreen: MainScreen,
       itemDescription: "",
-      dateOfPurchase: null,
-      dateOfPurchaseText: "",
+      dateOfPurchase: new Date(),
+      dateOfPurchaseText: new Date().toLocaleDateString(),
       pictureTypes: [
         { name: "Product" },
         { name: "Proof of purchase" },
@@ -105,18 +104,43 @@ export default {
       warranteeGuaranteeExpirationDate: null,
       warranteeGuaranteeExpirationDateText: "",
       appoximateValue: "",
-      reminderOption: "",
       notes: ""
     };
   },
   computed: {
     ...mapGetters({
-      showLoader: "getShowLoader"
+      showLoader: "getShowLoader",
+      error: "getError"
     })
   },
+  watch: {
+    error(val) {
+      if (val) {
+        this.$store.commit("setError", null);
+        alert(val);
+      }
+    }
+  },
   methods: {
+    createSlip() {
+      let payload = {};
+      payload.files = [...this.images];
+      payload.pictureType = this.pictureType;
+      payload.itemDescription = this.itemDescription;
+      payload.dateOfPurchase = this.dateOfPurchase;
+      payload.productCategory = this.productCategory;
+      payload.storeOrInstitution = this.storeOrInstitution;
+      payload.location = this.location;
+      payload.warranteeGuaranteeExpirationDate = this.warranteeGuaranteeExpirationDate;
+      payload.appoximateValue = Number(this.appoximateValue);
+      payload.notes = this.notes;
+      this.$store.dispatch("createSlip", payload);
+    },
     removeImage(idx) {
-      this.images.splice(idx, 1);
+      let file = fs.File.fromPath(this.images[idx].path);
+      file.remove().then(() => {
+        this.images.splice(idx, 1);
+      });
     },
     addImageOrFile() {
       let uploadOptions = ["File System"];
@@ -134,24 +158,38 @@ export default {
               return context.present();
             })
             .then(selection => {
-              selection.forEach(selected => {
-                let img = new Image();
-                img.src = selected;
-                this.images.push(img);
+              selection.forEach(imageAsset => {
+                let uniqueString = String(new Date().getTime());
+                let tempPath = fs.knownFolders.temp();
+                let fileName = `SOS_${uniqueString}.jpg`;
+                let filePath = fs.path.join(tempPath.path, fileName);
+                imageSourceModule.fromAsset(imageAsset).then(imageSource => {
+                  imageSource.saveToFile(filePath, "jpg");
+                  this.images.push({
+                    name: fileName,
+                    path: filePath
+                  });
+                });
               });
             });
         } else if (result === "Camera") {
           camera.requestPermissions().then(() => {
             camera
               .takePicture({
-                width: 1240,
-                height: 1748,   
-                saveToGallery: false             
+                saveToGallery: false
               })
               .then(imageAsset => {
-                let image = new Image();
-                image.src = imageAsset;
-                this.images.push(image);
+                let uniqueString = String(new Date().getTime());
+                let tempPath = fs.knownFolders.temp();
+                let fileName = `SOS_${uniqueString}.jpg`;
+                let filePath = fs.path.join(tempPath.path, fileName);
+                imageSourceModule.fromAsset(imageAsset).then(imageSource => {
+                  imageSource.saveToFile(filePath, "jpg");
+                  this.images.push({
+                    name: fileName,
+                    path: filePath
+                  });
+                });
               });
           });
         }

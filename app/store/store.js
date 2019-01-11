@@ -1,7 +1,9 @@
 import Vue from 'nativescript-vue'
 import Vuex from 'vuex'
 import to from 'await-to-js'
-import firebase, { logout } from 'nativescript-plugin-firebase'
+import firebase from 'nativescript-plugin-firebase'
+import * as fs from "tns-core-modules/file-system";
+
 Vue.use(Vuex)
 
 export const store = new Vuex.Store({
@@ -40,24 +42,24 @@ export const store = new Vuex.Store({
           if (!payload.registering) {
             action("Account not verified", "Cancel", ["Resend verification email"])
               .then(result => {
-                if(result === "Resend verification email") {
+                if (result === "Resend verification email") {
                   dispatch("sendEmailVerification");
                 }
-            });
+              });
           }
         }
       }
     },
-    async requestPasswordReset( {}, payload) {
+    async requestPasswordReset({ }, payload) {
       const [err, result] = await to(firebase
         .resetPassword({
           email: payload.emailAddress
-        }));  
-        if(err) {
-          commit("setError", "Error when trying to create a password reset request. Please try again.");
-        }
+        }));
+      if (err) {
+        commit("setError", "Error when trying to create a password reset request. Please try again.");
+      }
     },
-    async getCurrentUser({commit}) {
+    async getCurrentUser({ commit }) {
       return firebase.getCurrentUser();
 
     },
@@ -94,6 +96,28 @@ export const store = new Vuex.Store({
       commit("setUser", null);
       commit("setLoggedIn", false);
     },
+    createSlip({ commit, state }, payload) {
+      const uid = state.user.uid;
+      const date = new Date()
+      const year = String(date.getFullYear());
+      const month = String(date.getMonth() + 1).padStart(2, "0");      
+      let uploadPath = `uploads/${uid}/images/month_${year}_${month}`;
+      commit("setLoader", true);
+      payload.files.forEach((file) => {        
+        let fullUploadPath = `${uploadPath}/${file.name}`;        
+        firebase.storage.uploadFile({
+          remoteFullPath: fullUploadPath,
+          localFile: fs.File.fromPath(file.path),
+          onProgress: function(status) {
+            console.log("Uploaded fraction: " + status.fractionCompleted);
+            console.log("Percentage complete: " + status.percentageCompleted);
+          }
+        }).then((result) => {
+          console.log("RESULT ", result);
+        });
+      })
+      commit("setLoader", false);
+    }
   },
   mutations: {
     setLoader(state, val) {

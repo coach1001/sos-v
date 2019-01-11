@@ -14,7 +14,7 @@ const datePicker = new ModalPicker();
 // Prints Vue logs when --env.production is *NOT* set while building
 Vue.config.silent = (TNS_ENV === "production");
 
-firebase.init({
+firebase.init({  
   onAuthStateChanged: function (data) { // optional but useful to immediately re-logon the user when he re-visits your app
     if (data.loggedIn) {
       store.commit("setUser", data.user);
