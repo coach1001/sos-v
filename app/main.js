@@ -7,9 +7,11 @@ import VueDevtools from "nativescript-vue-devtools";
 import firebase from "nativescript-plugin-firebase";
 import { store } from "./store/store.js";
 
-const ModalPicker = require("nativescript-modal-datetimepicker")
-  .ModalDatetimepicker;
+const ModalPicker = require("nativescript-modal-datetimepicker").ModalDatetimepicker;
+const PhotoViewer = require("nativescript-photoviewer");
+
 const datePicker = new ModalPicker();
+const photoViewer = new PhotoViewer();
 
 // Prints Vue logs when --env.production is *NOT* set while building
 Vue.config.silent = (TNS_ENV === "production");
@@ -30,8 +32,8 @@ firebase.init({
 }, (error) => {
   console.log(`firebase.init error: ${error}`)
 });
-// Vue.prototype.$firebase = firebase;
 Vue.prototype.$datePicker = datePicker;
+Vue.prototype.$photoViewer = photoViewer;
 
 new Vue({
   render: h => h("frame", [h(LaunchScreen)]),

@@ -9,12 +9,17 @@
         android.position="popup"
       ></ActionItem>
     </ActionBar>
-    <GridLayout rows="auto, *">
-      <!-- <ListView row="1" items="{{ users }}">
-				<ListView.itemTemplate>
-					<Label text="{{ name }}" textWrap="true" />
-				</ListView.itemTemplate>
-      </ListView>-->
+    <ActivityIndicator :busy="showLoader"/>
+    <GridLayout rows="auto, *">      
+      <ListView row="1" for="slip in slips" @itemTap="openSlip">
+        <v-template>  
+          <WrapLayout>        
+            <Label :text="slip.itemDescription" width="50%"/>
+            <Label :text="slip.storeOrInstitution" width="50%"/>
+            <Label :text="slip.approximateValue" width="25%"/>
+          </WrapLayout>
+        </v-template>
+      </ListView>
       <Fab
         @tap="addSlip()"
         row="1"
@@ -31,28 +36,26 @@ import to from "await-to-js";
 import { mapGetters } from "vuex";
 import LoginScreen from "./LoginScreen";
 import UploadSlipScreen from "./UploadSlipScreen";
+import { setTimeout } from "tns-core-modules/timer";
 
 export default {
   data() {
-    return {
-      itemList: [
-        { name: "Item 1", description: "Item 1 description" },
-        { name: "Item 2", description: "Item 2 description" },
-        { name: "Item 3", description: "Item 3 description" }
-      ]
-    };
+    return {};
   },
   computed: {
     ...mapGetters({
-      showLoader: "getShowLoader"
+      showLoader: "getShowLoader",
+      slips: "getSlips"
     })
   },
   created() {
     this.$store.commit("setLoader", false);
   },
-  methods: {
-    onItemTap({ item }) {
-      console.log(`Tapped on ${item.name}`);
+  methods: {    
+    openSlip(slip) {      
+      //console.log(slip);
+      this.$store.commit("setCurrentSlip", slip.item);      
+      this.$navigateTo(UploadSlipScreen);
     },
     logout() {
       this.$store.dispatch("logout");
@@ -60,7 +63,18 @@ export default {
     },
     addSlip() {
       this.$navigateTo(UploadSlipScreen);
+    },
+    resetMenu() {      
+      this.$store.commit("setCurrentSlip", null);
+      if (this.slips.length === 0) {        
+        setTimeout(() => {          
+          this.$store.dispatch("loadSlips");    
+        }, 1000);        
+      }
     }
+  },
+  mounted() {
+    this.resetMenu();
   }
 };
 </script>

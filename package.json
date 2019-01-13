@@ -10,7 +10,7 @@
       "version": "5.0.0"
     },
     "tns-android": {
-      "version": "5.0.0"
+      "version": "5.1.0"
     }
   },
   "dependencies": {
@@ -23,6 +23,7 @@
     "nativescript-fonticon": "^2.0.0",
     "nativescript-imagepicker": "^6.0.6",
     "nativescript-modal-datetimepicker": "^1.1.12",
+    "nativescript-photoviewer": "^1.4.0",
     "nativescript-plugin-firebase": "^7.6.0",
     "nativescript-socket.io": "^0.9.0",
     "nativescript-theme-core": "^1.0.4",
@@ -31,7 +32,7 @@
     "nativescript-vue": "^2.0.0",
     "nativescript-vue-devtools": "^1.0.0",
     "npm": "^6.5.0",
-    "tns-core-modules": "^5.0.2",
+    "tns-core-modules": "^5.1.1",
     "vuex": "^3.0.1"
   },
   "devDependencies": {

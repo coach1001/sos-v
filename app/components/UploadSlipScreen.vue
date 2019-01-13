@@ -9,6 +9,11 @@
     </ActionBar>
     <ScrollView scrollBarIndicatorVisible="false">
       <StackLayout>
+        <ActivityIndicator :busy="showLoader"/>
+        <StackLayout>
+          <Button v-if="!currentSlip" @tap="createSlip" text="Create Slip"/>
+          <Button v-if="currentSlip" @tap="updateSlip" text="Update Slip"/>
+        </StackLayout>
         <Label text="Add Picture Image/File(s)" class="tlabel"/>
         <Fab
           @tap="addImageOrFile"
@@ -17,9 +22,9 @@
           class="fab-button"
         ></Fab>
         <WrapLayout>
-          <StackLayout :key="idx" v-for="(img, idx) in images">
-            <Image :src="img.path" width="75" height="75"/>
-            <Button @tap="removeImage(idx)" text="Remove"/>
+          <StackLayout :key="idx" v-for="(img, idx) in shownImages">
+            <Image @tap="showImage(idx)" :src="img.path" width="75" height="75"/>
+            <Button @tap="removeImage(img)" text="Remove"/>
           </StackLayout>
         </WrapLayout>
         <Label text="Picture type" class="tlabel"/>
@@ -58,11 +63,9 @@
           editable="false"
         />
         <Label text="Item approximate value" class="tlabel"/>
-        <TextField keyboardType="number" v-model="appoximateValue"/>
+        <TextField keyboardType="number" v-model="approximateValue"/>
         <Label text="Notes" class="tlabel"/>
         <TextField v-model="notes"/>
-        <ActivityIndicator :busy="showLoader"/>
-        <Button @tap="createSlip" text="Create Slip"/>
       </StackLayout>
     </ScrollView>
   </Page>
@@ -75,9 +78,11 @@ import * as camera from "nativescript-camera";
 import * as imagepicker from "nativescript-imagepicker";
 import * as fs from "tns-core-modules/file-system";
 import * as imageSourceModule from "tns-core-modules/image-source";
+
 export default {
   data() {
     return {
+      removeImages: [],
       images: [],
       mainScreen: MainScreen,
       itemDescription: "",
@@ -103,15 +108,19 @@ export default {
       location: "",
       warranteeGuaranteeExpirationDate: null,
       warranteeGuaranteeExpirationDateText: "",
-      appoximateValue: "",
+      approximateValue: "",
       notes: ""
     };
   },
   computed: {
     ...mapGetters({
       showLoader: "getShowLoader",
-      error: "getError"
-    })
+      error: "getError",
+      currentSlip: "getCurrentSlip"
+    }),
+    shownImages() {
+      return this.images.filter(image => !image.softDelete);
+    }
   },
   watch: {
     error(val) {
@@ -119,27 +128,81 @@ export default {
         this.$store.commit("setError", null);
         alert(val);
       }
+    },
+    currentSlip(val) {
+      if (val) {
+        this.mapStoreToSlip(val);
+      }
+    }
+  },
+  mounted() {  
+    if(this.currentSlip) {
+      this.mapStoreToSlip(this.currentSlip);
     }
   },
   methods: {
-    createSlip() {
+    mapStoreToSlip(currentSlip) {
+      this.images = [...currentSlip.files];
+      this.pictureType = currentSlip.pictureType.map((type) => {
+        return {
+          name: type
+        };
+      });      
+      this.itemDescription = currentSlip.itemDescription;
+      this.dateOfPurchase = currentSlip.dateOfPurchase;
+      this.productCategory = currentSlip.productCategory;
+      this.storeOrInstitution = currentSlip.storeOrInstitution;
+      this.location = currentSlip.location;
+      this.warranteeGuaranteeExpirationDate =
+        currentSlip.warranteeGuaranteeExpirationDate;
+      this.approximateValue = Number(currentSlip.approximateValue);
+      this.notes = currentSlip.notes;
+
+      this.warranteeGuaranteeExpirationDateText = 
+      this.warranteeGuaranteeExpirationDate ? 
+      this.warranteeGuaranteeExpirationDate.toLocaleDateString() : "";
+
+      this.dateOfPurchase ? 
+      this.dateOfPurchaseText = this.dateOfPurchase.toLocaleDateString() : "";
+    
+    },
+    mapSlipToStore() {
       let payload = {};
       payload.files = [...this.images];
-      payload.pictureType = this.pictureType;
+      payload.pictureType = this.pictureType.map((type) => {
+        return type.name
+      });
       payload.itemDescription = this.itemDescription;
       payload.dateOfPurchase = this.dateOfPurchase;
       payload.productCategory = this.productCategory;
       payload.storeOrInstitution = this.storeOrInstitution;
       payload.location = this.location;
       payload.warranteeGuaranteeExpirationDate = this.warranteeGuaranteeExpirationDate;
-      payload.appoximateValue = Number(this.appoximateValue);
+      payload.approximateValue = Number(this.approximateValue);
       payload.notes = this.notes;
-      this.$store.dispatch("createSlip", payload);
+      return payload;
     },
-    removeImage(idx) {
-      let file = fs.File.fromPath(this.images[idx].path);
-      file.remove().then(() => {
-        this.images.splice(idx, 1);
+    updateSlip() {},
+    showImage(idx) {
+      let images = [];
+      this.images.map(image => {
+        if (image.type !== "online") {
+          images.push(`file://${image.path}`);
+        } else {
+          images.push(image.path);
+        }
+      });
+      this.$photoViewer.startIndex = idx;
+      this.$photoViewer.showViewer(images);
+    },
+    createSlip() {
+      this.$store.dispatch("createSlip", this.mapSlipToStore());
+    },
+    removeImage(img) {
+      this.images.forEach(image => {
+        if (image.name === img.name) {
+          image.softDelete = true;
+        }
       });
     },
     addImageOrFile() {
@@ -167,7 +230,9 @@ export default {
                   imageSource.saveToFile(filePath, "jpg");
                   this.images.push({
                     name: fileName,
-                    path: filePath
+                    path: filePath,
+                    softDelete: false,
+                    type: "local"
                   });
                 });
               });
@@ -187,7 +252,9 @@ export default {
                   imageSource.saveToFile(filePath, "jpg");
                   this.images.push({
                     name: fileName,
-                    path: filePath
+                    path: filePath,
+                    softDelete: false,
+                    type: "local"
                   });
                 });
               });
@@ -262,9 +329,9 @@ TextField {
   color: silver;
 }
 .fab-button {
-  height: 35;
-  width: 35;
-  margin: 5;
+  height: 45;
+  width: 45;
+  margin: 10;
   background-color: #ff4081;
   horizontal-align: left;
   vertical-align: bottom;
