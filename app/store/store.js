@@ -3,6 +3,7 @@ import Vuex from "vuex"
 import to from "await-to-js"
 import firebase from "nativescript-plugin-firebase";
 import * as fs from "tns-core-modules/file-system";
+import { TEST_SLIPS } from '../assets/test';
 
 Vue.use(Vuex)
 
@@ -16,7 +17,7 @@ export const store = new Vuex.Store({
     fileUploadPercentage: null,
     filesToUploadCount: null,
     filesUploadedCount: null,
-    currentSlip: null,
+    currentSlip: {},
     slips: []
   },
   getters: {
@@ -63,67 +64,17 @@ export const store = new Vuex.Store({
     async loadSlips({commit, state}) {  
       let slips = [];    
       commit("setLoader", true);
-      /*const [err, result] = await to(
+      const [err, result] = await to(
         firebase.firestore.collection(`slips_${state.user.uid}`).get()
       );      
       if(err) {
         commit("setError", "Error retrieving slips. Relaunch application.");
       } else {
         result.forEach((doc) => {
-          slips.push(doc.data());
+          slips.push({...doc.data(), id: doc.id});
         });
-        console.log(JSON.stringify(slips));
         commit("setSlips", slips);
-      }*/
-      slips.push({
-        storeOrInstitution: "Pick n Pay",
-        notes: "",
-        approximateValue: 2999.00,
-        warranteeGuaranteeExpirationDate: new Date("2020-01-13T17:05:36.176Z"),
-        dateOfPurchase: new Date("2019-01-13T17:05:36.176Z"),
-        softDelete: false,
-        files:[
-          {
-            path: "https://firebasestorage.googleapis.com/v0/b/save-our-stuff-main.appspot.com/o/uploads%2FqSu9k5OGdigW3shoW8GrJkQ1DFa2%2Fimages%2F2019_01%2FSOS_1547399140226.jpg?alt=media&token=75ae3518-e8e6-4e40-90f2-e41186cdf85e",
-            softDelete: false, 
-            type: "online"
-          },            
-          {
-            path: "https://firebasestorage.googleapis.com/v0/b/save-our-stuff-main.appspot.com/o/uploads%2FqSu9k5OGdigW3shoW8GrJkQ1DFa2%2Fimages%2F2019_01%2FSOS_1547399157099.jpg?alt=media&token=e718f52f-1be5-427d-99e8-3fcc62e6a1b8",
-            softDelete: false,
-            type: "online"
-          }
-        ],
-        location: "Mountain View",
-        itemDescription: "Blender",
-        pictureType:["Proof of purchase"],
-        productCategory: "Other"
-      });
-      slips.push({
-        storeOrInstitution: "Cash Crusaders",
-        notes: "",
-        approximateValue: 5999.00,        
-        warranteeGuaranteeExpirationDate: null,
-        dateOfPurchase: new Date("2019-01-13T17:05:36.176Z"),
-        softDelete: false,
-        files:[
-          {
-            path: "https://firebasestorage.googleapis.com/v0/b/save-our-stuff-main.appspot.com/o/uploads%2FqSu9k5OGdigW3shoW8GrJkQ1DFa2%2Fimages%2F2019_01%2FSOS_1547399140226.jpg?alt=media&token=75ae3518-e8e6-4e40-90f2-e41186cdf85e",
-            softDelete: false, 
-            type: "online"
-          },            
-          {
-            path: "https://firebasestorage.googleapis.com/v0/b/save-our-stuff-main.appspot.com/o/uploads%2FqSu9k5OGdigW3shoW8GrJkQ1DFa2%2Fimages%2F2019_01%2FSOS_1547399157099.jpg?alt=media&token=e718f52f-1be5-427d-99e8-3fcc62e6a1b8",
-            softDelete: false,
-            type: "online"
-          }
-        ],
-        location: "Mountain View",
-        itemDescription: "Microwave",
-        pictureType:["Proof of purchase"],
-        productCategory: "Other"
-      });            
-      commit("setSlips", slips);
+      }
       commit("setLoader", false);      
     },
     async requestPasswordReset({ }, payload) {

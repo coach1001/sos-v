@@ -4,12 +4,12 @@
       <NavigationButton
         text="Go Back"
         android.systemIcon="ic_menu_back"
-        @tap="$navigateTo(mainScreen)"
+        @tap="$navigateTo(mainScreen, {clearHistory: true})"
       />
     </ActionBar>
     <ScrollView scrollBarIndicatorVisible="false">
       <StackLayout>
-        <ActivityIndicator :busy="showLoader"/>
+        <ActivityIndicator v-if="showLoader" :busy="showLoader"/>
         <StackLayout>
           <Button v-if="!currentSlip" @tap="createSlip" text="Create Slip"/>
           <Button v-if="currentSlip" @tap="updateSlip" text="Update Slip"/>
@@ -155,16 +155,13 @@ export default {
       this.location = currentSlip.location;
       this.warranteeGuaranteeExpirationDate =
         currentSlip.warranteeGuaranteeExpirationDate;
-      this.approximateValue = Number(currentSlip.approximateValue);
+      this.approximateValue = currentSlip.approximateValue ? String(currentSlip.approximateValue) : "";
       this.notes = currentSlip.notes;
-
       this.warranteeGuaranteeExpirationDateText = 
       this.warranteeGuaranteeExpirationDate ? 
       this.warranteeGuaranteeExpirationDate.toLocaleDateString() : "";
-
       this.dateOfPurchase ? 
       this.dateOfPurchaseText = this.dateOfPurchase.toLocaleDateString() : "";
-    
     },
     mapSlipToStore() {
       let payload = {};
@@ -196,6 +193,7 @@ export default {
       this.$photoViewer.showViewer(images);
     },
     createSlip() {
+      const slip = this.mapSlipToStore()
       this.$store.dispatch("createSlip", this.mapSlipToStore());
     },
     removeImage(img) {
