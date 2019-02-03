@@ -1,5 +1,6 @@
 # JetBrains project files
 .idea
+sos-key.jks
 
 # NPM
 node_modules

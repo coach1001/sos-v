@@ -7,19 +7,21 @@
         @tap="$navigateTo(mainScreen, {clearHistory: true})"
       />
     </ActionBar>
-    <ScrollView scrollBarIndicatorVisible="false">
-      <StackLayout>
-        <ActivityIndicator v-if="showLoader" :busy="showLoader"/>
-        <StackLayout>
+    <GridLayout rows="auto, *">
+      <ActivityIndicator height="20%" width="20%" row="1" :busy="showLoader"/>
+
+    <ScrollView v-if="!showLoader" row="1" scrollBarIndicatorVisible="false">
+      <StackLayout class="main-stack-margin">
+        <!-- <StackLayout>
           <Button v-if="!currentSlip" @tap="createSlip" text="Create Slip"/>
           <Button v-if="currentSlip" @tap="updateSlip" text="Update Slip"/>
-        </StackLayout>
+        </StackLayout> -->
         <Label text="Add Picture Image/File(s)" class="tlabel"/>
         <Fab
           @tap="addImageOrFile"
           icon="res://baseline_add_white_24"
           rippleColor="#f1f1f1"
-          class="fab-button"
+          class="fab-button hl"
         ></Fab>
         <WrapLayout>
           <StackLayout :key="idx" v-for="(img, idx) in shownImages">
@@ -66,8 +68,19 @@
         <TextField keyboardType="number" v-model="approximateValue"/>
         <Label text="Notes" class="tlabel"/>
         <TextField v-model="notes"/>
+        <StackLayout class="space">
+        </StackLayout>
       </StackLayout>
     </ScrollView>
+
+
+      <StackLayout row="1" orientation="horizontal" class="hr">        
+        <Fab @tap="createSlip" v-if="!currentSlip" horizontalAlignment="right" icon="res://baseline_cloud_upload_white_24" rippleColor="#f1f1f1" class="fab-button mb-15"></Fab>
+        <Fab @tap="updateSlip" v-if="currentSlip" horizontalAlignment="right" icon="res://baseline_save_white_24" rippleColor="#f1f1f1" class="fab-button mb-15"></Fab>
+        <Fab v-if="currentSlip" horizontalAlignment="right" icon="res://baseline_delete_white_24" rippleColor="#f1f1f1" class="fab-button mb-15"></Fab>
+      </StackLayout>
+    
+    </GridLayout>
   </Page>
 </template>
 
@@ -135,19 +148,19 @@ export default {
       }
     }
   },
-  mounted() {  
-    if(this.currentSlip) {
+  mounted() {
+    if (this.currentSlip) {
       this.mapStoreToSlip(this.currentSlip);
     }
   },
   methods: {
     mapStoreToSlip(currentSlip) {
       this.images = [...currentSlip.files];
-      this.pictureType = currentSlip.pictureType.map((type) => {
+      this.pictureType = currentSlip.pictureType.map(type => {
         return {
           name: type
         };
-      });      
+      });
       this.itemDescription = currentSlip.itemDescription;
       this.dateOfPurchase = currentSlip.dateOfPurchase;
       this.productCategory = currentSlip.productCategory;
@@ -155,19 +168,23 @@ export default {
       this.location = currentSlip.location;
       this.warranteeGuaranteeExpirationDate =
         currentSlip.warranteeGuaranteeExpirationDate;
-      this.approximateValue = currentSlip.approximateValue ? String(currentSlip.approximateValue) : "";
+      this.approximateValue = currentSlip.approximateValue
+        ? String(currentSlip.approximateValue)
+        : "";
       this.notes = currentSlip.notes;
-      this.warranteeGuaranteeExpirationDateText = 
-      this.warranteeGuaranteeExpirationDate ? 
-      this.warranteeGuaranteeExpirationDate.toLocaleDateString() : "";
-      this.dateOfPurchase ? 
-      this.dateOfPurchaseText = this.dateOfPurchase.toLocaleDateString() : "";
+      this.warranteeGuaranteeExpirationDateText = this
+        .warranteeGuaranteeExpirationDate
+        ? this.warranteeGuaranteeExpirationDate.toLocaleDateString()
+        : "";
+      this.dateOfPurchase
+        ? (this.dateOfPurchaseText = this.dateOfPurchase.toLocaleDateString())
+        : "";
     },
     mapSlipToStore() {
       let payload = {};
       payload.files = [...this.images];
-      payload.pictureType = this.pictureType.map((type) => {
-        return type.name
+      payload.pictureType = this.pictureType.map(type => {
+        return type.name;
       });
       payload.itemDescription = this.itemDescription;
       payload.dateOfPurchase = this.dateOfPurchase;
@@ -193,7 +210,7 @@ export default {
       this.$photoViewer.showViewer(images);
     },
     createSlip() {
-      const slip = this.mapSlipToStore()
+      const slip = this.mapSlipToStore();
       this.$store.dispatch("createSlip", this.mapSlipToStore());
     },
     removeImage(img) {
@@ -309,13 +326,16 @@ export default {
 </script>
 
 <style scoped>
-StackLayout {
+.space {
+  height: 45;
+}
+.main-stack-margin {
   margin-left: 20;
   margin-right: 20;
 }
 TextField {
   margin-bottom: 10;
-  margin-right: 30;
+  margin-right: 10;
 }
 .tlabel {
   font-size: 19%;
@@ -330,8 +350,20 @@ TextField {
   height: 45;
   width: 45;
   margin: 10;
-  background-color: #ff4081;
-  horizontal-align: left;
+  background-color: #ff4081;  
   vertical-align: bottom;
+}
+.mb-15 {
+  margin-bottom: 15;
+  margin-left: 5;
+}
+.mb-30 {
+  margin: 30;
+}
+.hl {
+  horizontal-align: left;
+}
+.hr {
+  horizontal-align: right;
 }
 </style>

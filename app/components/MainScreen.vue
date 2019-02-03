@@ -136,8 +136,8 @@ export default {
 
 <style scoped>
 .fab-button {
-  height: 70;
-  width: 70;
+  height: 55;
+  width: 55;
   margin: 15;
   background-color: #ff4081;
   horizontal-align: right;
