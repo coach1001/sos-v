@@ -18,7 +18,8 @@ export const store = new Vuex.Store({
     filesToUploadCount: null,
     filesUploadedCount: null,
     currentSlip: {},
-    slips: []
+    slips: [],    
+    filter: null
   },
   getters: {
     getShowLoader: state => state.showLoader,
@@ -61,21 +62,40 @@ export const store = new Vuex.Store({
         }
       }
     },
-    async loadSlips({commit, state}) {  
-      let slips = [];    
+    async loadSlips({ commit, state }) {
+      let slips = [];
       commit("setLoader", true);
-      const [err, result] = await to(
-        firebase.firestore.collection(`slips_${state.user.uid}`).get()
-      );      
-      if(err) {
+      const query = firebase.firestore.collection(`slips_${state.user.uid}`)
+        .where("softDelete", "==", false)                
+        .orderBy("dateOfPurchase", "desc")          
+        .limit(100);                       
+      
+      query.get()
+        .then((querySnapShot) => {
+          querySnapShot.forEach(doc => {
+            slips.push({ ...doc.data(), id: doc.id });
+            commit("setSlips", slips);
+            commit("setLoader", false);
+          });
+        })
+        .catch(err => {
+          commit("setError", `Error retrieving slips. Relaunch application. Error : ${err}`);
+          commit("setLoader", false);
+        });
+      /*const [err, result] = await to(
+        query.get();
+      );
+      if (err) {
+        console.log(JSON.stringify(err));
         commit("setError", "Error retrieving slips. Relaunch application.");
       } else {
         result.forEach((doc) => {
-          slips.push({...doc.data(), id: doc.id});
+          slips.push({ ...doc.data(), id: doc.id });
         });
         commit("setSlips", slips);
+        commit("orderSlips");
       }
-      commit("setLoader", false);      
+      commit("setLoader", false);*/
     },
     async requestPasswordReset({ }, payload) {
       const [err, result] = await to(firebase
@@ -122,14 +142,14 @@ export const store = new Vuex.Store({
       commit("setUser", null);
       commit("setLoggedIn", false);
     },
-    async createSlip({ commit, state }, payload) {      
+    async createSlip({ commit, state }, payload) {
       let uploadResponses = [];
       let urlResponses = [];
       const uid = state.user.uid;
       const date = payload.dateOfPurchase;
       const year = String(date.getFullYear());
       const month = String(date.getMonth() + 1).padStart(2, "0");
-      let uploadPath = `uploads/${uid}/images/${year}_${month}`;      
+      let uploadPath = `uploads/${uid}/images/${year}_${month}`;
       commit("setLoader", true);
       commit("setFilesToUploadCount", payload.files.length);
       commit("setFilesUploadedCount", 0);
@@ -160,7 +180,7 @@ export const store = new Vuex.Store({
         } catch (error) {
           commit("setError", `${fullUploadPath} url retrieval failed. Please try again`);
         }
-      }));      
+      }));
       payload.files = [];
       urlResponses.forEach((urlResponse) => {
         payload.files.push({
@@ -169,10 +189,10 @@ export const store = new Vuex.Store({
           softDelete: false
         })
       });
-      payload.softDelete = false;            
+      payload.softDelete = false;
       try {
         await firebase.firestore.collection(`slips_${uid}`).add(payload)
-      } catch (error) {        
+      } catch (error) {
         payload.files.map((file) => {
           let fullUploadPath = `${uploadPath}/${file.name}`;
           firebase.storage.deleteFile({
@@ -180,10 +200,96 @@ export const store = new Vuex.Store({
           });
         });
         commit("setError", `Slip creation failed. Please try again. ${error}`);
-      }            
+      }
       commit("setCurrentSlip", payload);
       commit("pushNewSlip", payload);
+      commit("orderSlips");
       commit("setLoader", false);
+    },
+    async updateSlip({ commit, state }, payload) {
+      let uploadResponses = [];
+      let filesToUpload = [];
+      const uid = state.user.uid;
+      const date = payload.dateOfPurchase;
+      const year = String(date.getFullYear());
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      let uploadPath = `uploads/${uid}/images/${year}_${month}`;
+      payload.files.forEach((file, index) => {
+        if (file.type === 'local' && file.softDelete === false) {
+          filesToUpload.push({ ...file, orgIdx: index });
+        }
+      });      
+      commit("setLoader", true);
+      commit("setFilesToUploadCount", filesToUpload.length);
+      commit("setFilesUploadedCount", 0);
+      commit("setFileUploadPercentage", 0);      
+      await Promise.all(filesToUpload.map(async (file) => {
+        let fullUploadPath = `${uploadPath}/${file.name}`;
+        try {
+          let uploadResponse = await firebase.storage.uploadFile({
+            remoteFullPath: fullUploadPath,
+            localFile: fs.File.fromPath(file.path),
+            onProgress: function (status) {
+              commit("setFileUploadPercentage", status.percentageCompleted);
+            }
+          });
+          commit("setFilesUploadedCount", state.getFilesUploadedCount + 1)
+          uploadResponses.push(uploadResponse);
+        } catch (error) {
+          commit("setError", `${fullUploadPath} upload failed. Please try again`);
+        }
+      }));      
+      await Promise.all(filesToUpload.map(async (file) => {
+        let fullUploadPath = `${uploadPath}/${file.name}`;
+        try {
+          let urlResponse = await firebase.storage.getDownloadUrl({
+            remoteFullPath: fullUploadPath
+          });
+          payload.files[file.orgIdx].type = "online";
+          payload.files[file.orgIdx].softDelete = false;
+          payload.files[file.orgIdx].path = urlResponse;                              
+        } catch (error) {
+          commit("setError", `${fullUploadPath} url retrieval failed. Please try again`);
+        }
+      }));      
+      try {
+        payload.ownerId = state.user.uid;
+        await firebase.firestore.collection(`slips_${uid}`).doc(state.currentSlip.id).set(payload, {merge: true});
+      } catch (error) {
+        filesToUpload.map((file) => {
+          let fullUploadPath = `${uploadPath}/${file.name}`;
+          firebase.storage.deleteFile({
+            remoteFullPath: fullUploadPath
+          });
+        });
+        commit("setError", `Slip updating failed. Please try again. ${error}`);
+      }
+      payload.id = state.currentSlip.id;
+      commit("setCurrentSlip", payload);
+      commit("replaceSlip", payload);
+      commit("orderSlips");
+      commit("setLoader", false);
+    },
+    async deleteSlip({ commit, state }, docId) {
+      let deletedIndex = null;
+      commit("setLoader", true);
+      try {
+        await firebase.firestore.collection('slips').doc(docId).set({
+          softDelete: true
+        }, { merge: true });
+        state.slips.forEach((slip, index) => {
+          if (slip.id === docId) {
+            deletedIndex = index;
+          }
+        });
+        commit("removeSlip", deletedIndex);        
+        commit("setCurrentSlip", {});
+        commit("orderSlips");
+        commit("setLoader", false);
+      } catch {
+        commit("setError", `Slip deletion failed. Please try again. ${error}`);
+        commit("setLoader", false);
+      }
     }
   },
   mutations: {
@@ -220,8 +326,28 @@ export const store = new Vuex.Store({
     setSlips(state, val) {
       state.slips = val;
     },
-    pushNewSlip(state, val) {      
+    pushNewSlip(state, val) {
       state.slips.push(val);
+    },
+    removeSlip(state, val) {
+      state.slips.splice(val, 1);      
+    },
+    replaceSlip(state, val) {
+      let index;
+      state.slips.forEach((slip, idx) => {
+        if(slip.id === val.id) {
+          index = idx;
+        }
+      });
+      state.slips[index] = val;
+      
+    },
+    orderSlips(state) {
+      state.slips.sort(function compare(a, b) {
+        var dateA = new Date(a.dateOfPurchase);
+        var dateB = new Date(b.dateOfPurchase);
+        return dateB - dateA;
+      });
     }
   }
 });

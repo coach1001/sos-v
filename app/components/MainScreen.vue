@@ -18,18 +18,15 @@
         width="20%"
         row="1"
         :busy="showLoader"
-      />
+      />      
+      <TextField v-model="filter" hint="Filter"/>
       <ListView
         row="1"
         for="slip in slips"
         @itemTap="openSlip"
       >
+        
         <v-template>
-          <CardView
-            margin="10"
-            elevation="10"
-            radius="1"
-          >
             <StackLayout
               class="card-s"
               orientation="horizontal"
@@ -71,8 +68,7 @@
                   />
                 </WrapLayout>
               </StackLayout>
-            </StackLayout>
-          </CardView>
+            </StackLayout>          
         </v-template>
       </ListView>
       <Fab
@@ -96,7 +92,9 @@ import { setTimeout } from "tns-core-modules/timer";
 
 export default {
   data() {
-    return {};
+    return {
+      filter: null
+    };
   },
   computed: {
     ...mapGetters({
@@ -125,11 +123,11 @@ export default {
         setTimeout(() => {
           this.$store.dispatch("loadSlips");
         }, 1000);
-      }
+      } 
     }
   },
   mounted() {
-    this.resetMenu();
+    this.resetMenu();    
   }
 };
 </script>
@@ -144,13 +142,17 @@ export default {
   vertical-align: bottom;
 }
 ListView {
-  separator-color: transparent;
+  separator-color: lightgray;
 }
 .card-s {
-  padding: 10;
+  padding: 5;  
+}
+.hr-light {
+  border: gray solid 1px;
+  height: 0;
 }
 .pill {
-  font-size: 10%;
+  font-size: 8%;
   background-color: #687ad0;
   color: white;
   border-radius: 50%;
@@ -162,14 +164,14 @@ ListView {
 .item-d {
   font-weight: bold;
   margin-bottom: 5;
-  font-size: 20%;
+  font-size: 14%;
 }
 .heading-d {
   font-weight: bold;
   font-size: 10%;
 }
 .pill-d {
-  font-size: 10%;
+  font-size: 8%;
   background-color: #FF4136;
   color: white;
   border-radius: 50%;
@@ -179,7 +181,7 @@ ListView {
   margin-bottom: 3;
 }
 .pill-g {
-  font-size: 10%;
+  font-size: 8%;
   background-color: darkgreen;
   color: white;
   border-radius: 50%;
@@ -187,5 +189,10 @@ ListView {
   margin-top: 3;
   margin-right: 3;
   margin-bottom: 3;
+}
+.tlabel {
+  font-size: 19%;
+  margin-top: 20;
+  color: silver;
 }
 </style>

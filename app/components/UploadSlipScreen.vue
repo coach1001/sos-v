@@ -10,76 +10,89 @@
     <GridLayout rows="auto, *">
       <ActivityIndicator height="20%" width="20%" row="1" :busy="showLoader"/>
 
-    <ScrollView v-if="!showLoader" row="1" scrollBarIndicatorVisible="false">
-      <StackLayout class="main-stack-margin">
-        <!-- <StackLayout>
-          <Button v-if="!currentSlip" @tap="createSlip" text="Create Slip"/>
-          <Button v-if="currentSlip" @tap="updateSlip" text="Update Slip"/>
-        </StackLayout> -->
-        <Label text="Add Picture Image/File(s)" class="tlabel"/>
-        <Fab
-          @tap="addImageOrFile"
-          icon="res://baseline_add_white_24"
-          rippleColor="#f1f1f1"
-          class="fab-button hl"
-        ></Fab>
-        <WrapLayout>
-          <StackLayout :key="idx" v-for="(img, idx) in shownImages">
-            <Image @tap="showImage(idx)" :src="img.path" width="75" height="75"/>
-            <Button @tap="removeImage(img)" text="Remove"/>
-          </StackLayout>
-        </WrapLayout>
-        <Label text="Picture type" class="tlabel"/>
-        <FilterSelect
-          modal_title="Picture type(s)"
-          hint="..."
-          height="100%"
-          :items="pictureTypes"
-          multiple="true"
-          :selected="pictureType"
-          allowSearch="false"
-          primary_key="name"
-          xbtn
-          @change="pictureTypeSelectChanged"
-          @close="pictureTypeSelectClosed"
-        ></FilterSelect>
-        <Label text="Item Description" class="tlabel"/>
-        <TextField v-model="itemDescription"/>
-        <Label text="Date of purchase" class="tlabel"/>
-        <TextField
-          @tap="openDateOfPurchaseDatePicker()"
-          editable="false"
-          :text="dateOfPurchaseText"
-        />
-        <Label text="Product catergory" class="tlabel"/>
-        <TextField @tap="openProductCatergoryList()" v-model="productCategory" editable="false"/>
-        <Label text="Store/Institution" class="tlabel"/>
-        <TextField v-model="storeOrInstitution"/>
-        <Label text="Store/Institution location" class="tlabel"/>
-        <TextField v-model="location"/>
-        <Label text="Warrantee/Guarantee" class="tlabel"/>
-        <Label text="Expiration date" class="slabel"/>
-        <TextField
-          @tap="openExpirationDatePicker()"
-          :text="warranteeGuaranteeExpirationDateText"
-          editable="false"
-        />
-        <Label text="Item approximate value" class="tlabel"/>
-        <TextField keyboardType="number" v-model="approximateValue"/>
-        <Label text="Notes" class="tlabel"/>
-        <TextField v-model="notes"/>
-        <StackLayout class="space">
+      <ScrollView v-if="!showLoader" row="1" scrollBarIndicatorVisible="false">
+        <StackLayout class="main-stack-margin">
+          <Label text="Add Picture Image/File(s)" class="tlabel"/>
+          <Fab
+            @tap="addImageOrFile"
+            icon="res://baseline_add_white_24"
+            rippleColor="#f1f1f1"
+            class="fab-button hl"
+          ></Fab>
+          <WrapLayout>
+            <StackLayout :key="idx" v-for="(img, idx) in shownImages">
+              <Image @tap="showImage(idx)" :src="img.path" width="75" height="75"/>
+              <Button @tap="removeImage(img)" text="Remove"/>
+            </StackLayout>
+          </WrapLayout>
+          <Label text="Picture type" class="tlabel"/>
+          <FilterSelect
+            modal_title="Picture type(s)"
+            hint="..."
+            height="100%"
+            :items="pictureTypes"
+            multiple="true"
+            :selected="pictureType"
+            allowSearch="false"
+            primary_key="name"
+            xbtn
+            @change="pictureTypeSelectChanged"
+            @close="pictureTypeSelectClosed"
+          ></FilterSelect>
+          <Label text="Item Description" class="tlabel"/>
+          <TextField v-model="itemDescription"/>
+          <Label text="Date of purchase" class="tlabel"/>
+          <TextField
+            @tap="openDateOfPurchaseDatePicker()"
+            editable="false"
+            :text="dateOfPurchaseText"
+          />
+          <Label text="Product catergory" class="tlabel"/>
+          <TextField @tap="openProductCatergoryList()" v-model="productCategory" editable="false"/>
+          <Label text="Store/Institution" class="tlabel"/>
+          <TextField v-model="storeOrInstitution"/>
+          <Label text="Store/Institution location" class="tlabel"/>
+          <TextField v-model="location"/>
+          <Label text="Warrantee/Guarantee" class="tlabel"/>
+          <Label text="Expiration date" class="slabel"/>
+          <TextField
+            @tap="openExpirationDatePicker()"
+            :text="warranteeGuaranteeExpirationDateText"
+            editable="false"
+          />
+          <Label text="Item approximate value" class="tlabel"/>
+          <TextField keyboardType="number" v-model="approximateValue"/>
+          <Label text="Notes" class="tlabel"/>
+          <TextField v-model="notes"/>
+          <StackLayout class="space"></StackLayout>
         </StackLayout>
+      </ScrollView>
+      <StackLayout row="1" orientation="horizontal" class="hr">
+        <Fab
+          @tap="createSlip"
+          v-if="!currentSlip"
+          horizontalAlignment="right"
+          icon="res://baseline_cloud_upload_white_24"
+          rippleColor="#f1f1f1"
+          class="fab-button mb-15"
+        ></Fab>
+        <Fab
+          @tap="updateSlip"
+          v-if="currentSlip"
+          horizontalAlignment="right"
+          icon="res://baseline_save_white_24"
+          rippleColor="#f1f1f1"
+          class="fab-button mb-15"
+        ></Fab>
+        <Fab
+          @tap="deleteSlip"
+          v-if="currentSlip"
+          horizontalAlignment="right"
+          icon="res://baseline_delete_white_24"
+          rippleColor="#f1f1f1"
+          class="fab-button mb-15"
+        ></Fab>
       </StackLayout>
-    </ScrollView>
-
-
-      <StackLayout row="1" orientation="horizontal" class="hr">        
-        <Fab @tap="createSlip" v-if="!currentSlip" horizontalAlignment="right" icon="res://baseline_cloud_upload_white_24" rippleColor="#f1f1f1" class="fab-button mb-15"></Fab>
-        <Fab @tap="updateSlip" v-if="currentSlip" horizontalAlignment="right" icon="res://baseline_save_white_24" rippleColor="#f1f1f1" class="fab-button mb-15"></Fab>
-        <Fab v-if="currentSlip" horizontalAlignment="right" icon="res://baseline_delete_white_24" rippleColor="#f1f1f1" class="fab-button mb-15"></Fab>
-      </StackLayout>
-    
     </GridLayout>
   </Page>
 </template>
@@ -95,6 +108,7 @@ import * as imageSourceModule from "tns-core-modules/image-source";
 export default {
   data() {
     return {
+      validationMessage: "",
       removeImages: [],
       images: [],
       mainScreen: MainScreen,
@@ -122,7 +136,31 @@ export default {
       warranteeGuaranteeExpirationDate: null,
       warranteeGuaranteeExpirationDateText: "",
       approximateValue: "",
-      notes: ""
+      notes: "",
+      requiredFields: [
+        {
+          field: "itemDescription",
+          type: "text",
+          error: "Item description is required"
+        },
+        {
+          field: "productCategory",
+          type: "text",
+          error: "Product catergory is required"
+        },
+        {
+          field: "pictureType",
+          type: "array",
+          error: "Atleast one picture type is required",
+          minLength: 1
+        },
+        {
+          field: "images",
+          type: "array",
+          error: "Only five images allowed per slip",
+          maxLength: 5
+        }
+      ]
     };
   },
   computed: {
@@ -137,7 +175,7 @@ export default {
   },
   watch: {
     error(val) {
-      if (val) {
+      if (val) {        
         this.$store.commit("setError", null);
         alert(val);
       }
@@ -153,7 +191,32 @@ export default {
       this.mapStoreToSlip(this.currentSlip);
     }
   },
-  methods: {
+  methods: {  
+    validateForm() {      
+      let formValid = true;
+      this.validationMessage = "";            
+      this.requiredFields.forEach(field => {
+        if (field.type === "text") {
+          if(this[field.field] === "" ||  this[field.field] === null) {
+            this.validationMessage += `${field.error}\n`;
+            formValid = false;
+          }            
+        } else if (field.type === "array") {
+          if(field.minLength) {
+            if(this[field.field] && (this[field.field].length < field.minLength)) {
+              this.validationMessage += `${field.error}\n`;
+              formValid = false;
+            }
+          } else if(field.maxLength) {
+            if(this[field.field] && (this[field.field].length > field.maxLength)) {
+              this.validationMessage += `${field.error}\n`;
+              formValid = false;
+            }
+          }
+        }        
+      });      
+      return formValid;
+    },
     mapStoreToSlip(currentSlip) {
       this.images = [...currentSlip.files];
       this.pictureType = currentSlip.pictureType.map(type => {
@@ -196,7 +259,35 @@ export default {
       payload.notes = this.notes;
       return payload;
     },
-    updateSlip() {},
+    deleteSlip() {
+      confirm({
+        title: "Delete slip",
+        message: "Are you sure want to delete this slip?",
+        okButtonText: "Yes",
+        cancelButtonText: "No"
+      }).then(async result => {
+        if (result) {
+          await this.$store.dispatch("deleteSlip", this.currentSlip.id);
+          this.$navigateTo(this.mainScreen, { clearHistory: true });
+        }
+      });
+    },
+    updateSlip() {
+      confirm({
+        title: "Update slip",
+        message: "Are you sure want to update this slip?",
+        okButtonText: "Yes",
+        cancelButtonText: "No"
+      }).then(result => {
+        if (result) {
+          if(this.validateForm()) {            
+            this.$store.dispatch("updateSlip", this.mapSlipToStore());  
+          } else {            
+            this.$store.commit("setError", this.validationMessage);            
+          }          
+        }
+      });
+    },
     showImage(idx) {
       let images = [];
       this.images.map(image => {
@@ -210,8 +301,11 @@ export default {
       this.$photoViewer.showViewer(images);
     },
     createSlip() {
-      const slip = this.mapSlipToStore();
-      this.$store.dispatch("createSlip", this.mapSlipToStore());
+      if(this.validateForm()) {
+        this.$store.dispatch("createSlip", this.mapSlipToStore());
+      } else {
+        this.$store.commit("setError", this.validationMessage);
+      }      
     },
     removeImage(img) {
       this.images.forEach(image => {
@@ -350,7 +444,7 @@ TextField {
   height: 45;
   width: 45;
   margin: 10;
-  background-color: #ff4081;  
+  background-color: #ff4081;
   vertical-align: bottom;
 }
 .mb-15 {
