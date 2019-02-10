@@ -120,9 +120,7 @@ export default {
     },
     resetMenu() {
       if (this.slips.length === 0) {
-        setTimeout(() => {
-          this.$store.dispatch("loadSlips");
-        }, 1000);
+        this.$store.dispatch("loadSlips");
       } 
     }
   },

@@ -65,37 +65,24 @@ export const store = new Vuex.Store({
     async loadSlips({ commit, state }) {
       let slips = [];
       commit("setLoader", true);
-      const query = firebase.firestore.collection(`slips_${state.user.uid}`)
+      const query = await firebase.firestore.collection('slips')
         .where("softDelete", "==", false)                
+        .where("ownerId" , "==", state.user.uid)
         .orderBy("dateOfPurchase", "desc")          
-        .limit(100);                       
-      
+        .limit(150);                             
       query.get()
         .then((querySnapShot) => {
           querySnapShot.forEach(doc => {
-            slips.push({ ...doc.data(), id: doc.id });
-            commit("setSlips", slips);
-            commit("setLoader", false);
+            slips.push({ ...doc.data(), id: doc.id });                        
           });
+          commit("setLoader", false);
+          commit("setSlips", slips);          
         })
         .catch(err => {
-          commit("setError", `Error retrieving slips. Relaunch application. Error : ${err}`);
           commit("setLoader", false);
+          commit("setError", `Error retrieving slips. Relaunch application. Error : ${err}`);          
         });
-      /*const [err, result] = await to(
-        query.get();
-      );
-      if (err) {
-        console.log(JSON.stringify(err));
-        commit("setError", "Error retrieving slips. Relaunch application.");
-      } else {
-        result.forEach((doc) => {
-          slips.push({ ...doc.data(), id: doc.id });
-        });
-        commit("setSlips", slips);
-        commit("orderSlips");
-      }
-      commit("setLoader", false);*/
+        commit("setLoader", false);
     },
     async requestPasswordReset({ }, payload) {
       const [err, result] = await to(firebase
@@ -174,9 +161,9 @@ export const store = new Vuex.Store({
         let fullUploadPath = `${uploadPath}/${file.name}`;
         try {
           let urlResponse = await firebase.storage.getDownloadUrl({
-            remoteFullPath: fullUploadPath
+            remoteFullPath: fullUploadPath            
           });
-          urlResponses.push(urlResponse);
+          urlResponses.push({ urlResponse: urlResponse, name: file.name});
         } catch (error) {
           commit("setError", `${fullUploadPath} url retrieval failed. Please try again`);
         }
@@ -184,15 +171,18 @@ export const store = new Vuex.Store({
       payload.files = [];
       urlResponses.forEach((urlResponse) => {
         payload.files.push({
-          path: urlResponse,
+          path: urlResponse.urlResponse,
           type: "online",
-          softDelete: false
+          softDelete: false,
+          name: urlResponse.name
         })
       });
       payload.softDelete = false;
+      let createResult;
       try {
-        await firebase.firestore.collection(`slips_${uid}`).add(payload)
-      } catch (error) {
+        payload.ownerId = state.user.uid;
+        createResult = await firebase.firestore.collection('slips').add(payload);
+      } catch (error) {        
         payload.files.map((file) => {
           let fullUploadPath = `${uploadPath}/${file.name}`;
           firebase.storage.deleteFile({
@@ -201,6 +191,8 @@ export const store = new Vuex.Store({
         });
         commit("setError", `Slip creation failed. Please try again. ${error}`);
       }
+      console.log('===============>', JSON.stringify(createResult.id));
+      payload.id = createResult.id;
       commit("setCurrentSlip", payload);
       commit("pushNewSlip", payload);
       commit("orderSlips");
@@ -247,14 +239,15 @@ export const store = new Vuex.Store({
           });
           payload.files[file.orgIdx].type = "online";
           payload.files[file.orgIdx].softDelete = false;
-          payload.files[file.orgIdx].path = urlResponse;                              
+          payload.files[file.orgIdx].path = urlResponse;
+          payload.files[file.orgIdx].name = file.name;                              
         } catch (error) {
           commit("setError", `${fullUploadPath} url retrieval failed. Please try again`);
         }
       }));      
       try {
-        payload.ownerId = state.user.uid;
-        await firebase.firestore.collection(`slips_${uid}`).doc(state.currentSlip.id).set(payload, {merge: true});
+        payload.ownerId = state.user.uid;        
+        await firebase.firestore.collection('slips').doc(state.currentSlip.id).set(payload, {merge: true});
       } catch (error) {
         filesToUpload.map((file) => {
           let fullUploadPath = `${uploadPath}/${file.name}`;

@@ -153,12 +153,6 @@ export default {
           type: "array",
           error: "Atleast one picture type is required",
           minLength: 1
-        },
-        {
-          field: "images",
-          type: "array",
-          error: "Only five images allowed per slip",
-          maxLength: 5
         }
       ]
     };
@@ -192,6 +186,19 @@ export default {
     }
   },
   methods: {  
+    countImages() {
+      let validAmount = true;
+      let count = 0;
+      this.images.forEach((image) => {
+        if(image.softDelete === false) {
+          count+=1;
+        } 
+      });
+      if(count > 5) {
+        validAmount = false;
+      }
+      return validAmount;
+    },
     validateForm() {      
       let formValid = true;
       this.validationMessage = "";            
@@ -214,11 +221,15 @@ export default {
             }
           }
         }        
-      });      
+      });  
+      if(!this.countImages()) {
+        this.validationMessage += 'Only 5 images allowed per slip';
+        formValid = false;
+      }    
       return formValid;
     },
     mapStoreToSlip(currentSlip) {
-      this.images = [...currentSlip.files];
+      this.images = JSON.parse(JSON.stringify(currentSlip.files));
       this.pictureType = currentSlip.pictureType.map(type => {
         return {
           name: type
@@ -245,7 +256,7 @@ export default {
     },
     mapSlipToStore() {
       let payload = {};
-      payload.files = [...this.images];
+      payload.files = JSON.parse(JSON.stringify(this.images));
       payload.pictureType = this.pictureType.map(type => {
         return type.name;
       });
@@ -307,12 +318,20 @@ export default {
         this.$store.commit("setError", this.validationMessage);
       }      
     },
-    removeImage(img) {
-      this.images.forEach(image => {
-        if (image.name === img.name) {
-          image.softDelete = true;
+    removeImage(img) {      
+      let deleteIdx = [];
+      this.images.forEach((image, idx) => {
+        if(image.name === img.name) {
+          this.images[idx].softDelete = true;
+          if(image.type === 'local') {
+            deleteIdx.push(idx);
+          }
         }
       });
+      deleteIdx = deleteIdx.reverse();
+      deleteIdx.forEach(idx => {
+        this.images.splice(idx, 1);
+      })
     },
     addImageOrFile() {
       let uploadOptions = ["File System"];
