@@ -4,12 +4,14 @@ import to from "await-to-js"
 import firebase from "nativescript-plugin-firebase";
 import * as fs from "tns-core-modules/file-system";
 import * as uniqid from 'uniqid';
-import { stat } from "fs";
 
 Vue.use(Vuex)
 
 export const store = new Vuex.Store({
   state: {
+    pictureTypeFilter: [],
+    productCategoryFilter: null,
+    order: "desc",
     documentsPerLoad: 10,
     loadedAll: false,
     lastVisible: null,
@@ -34,7 +36,10 @@ export const store = new Vuex.Store({
     getFilesToUploadCount: state => state.filesToUploadCount,
     getFilesUploadedCount: state => state.filesUploadedCount,
     getCurrentSlip: state => state.currentSlip,
-    getSlips: state => state.slips
+    getSlips: state => state.slips,
+    getOrder: state => state.order,
+    getPictureTypeFilter: state => state.pictureTypeFilter,
+    getProductCategoryFilter: state => state.productCategoryFilter
   },
   actions: {
     async login({ commit, dispatch }, payload) {
@@ -75,7 +80,7 @@ export const store = new Vuex.Store({
         query = await firebase.firestore.collection('slips')
           .where("softDelete", "==", false)                
           .where("ownerId" , "==", state.user.uid)
-          .orderBy("dateOfPurchase", "desc")
+          .orderBy("dateOfPurchase", state.order)
           .startAfter(state.lastVisible)
           .limit(state.documentsPerLoad);
       }
@@ -83,7 +88,7 @@ export const store = new Vuex.Store({
         query = await firebase.firestore.collection('slips')
           .where("softDelete", "==", false)                
           .where("ownerId" , "==", state.user.uid)
-          .orderBy("dateOfPurchase", "desc")
+          .orderBy("dateOfPurchase", state.order)
           .limit(state.documentsPerLoad);
       }
       if(query) {
@@ -305,12 +310,21 @@ export const store = new Vuex.Store({
         });
         commit("removeSlip", deletedIndex);        
         commit("setCurrentSlip", {});
-        commit("orderSlips");
         commit("setLoader", false);
       } catch {
         commit("setError", `Slip deletion failed. Please try again. ${error}`);
         commit("setLoader", false);
       }
+    },
+    clearSlips({ commit, dispatch }) {
+      commit("setSlips", []);
+      commit("setLastVisible", null);
+      commit("setLoadedAll", false);
+      dispatch("loadSlips");  
+    },
+    changeOrder({ state, dispatch, commit }) {
+      state.order === "desc" ? commit("setOrder", "asc") : commit("setOrder", "desc");
+      dispatch("clearSlips");
     }
   },
   mutations: {
@@ -345,7 +359,7 @@ export const store = new Vuex.Store({
       state.currentSlip = val;
     },
     setSlips(state, val) {
-      if(state.slips.length > 0) {
+      if(state.slips.length > 0 && val.length > 0) {
         let copySlips = [...state.slips];
         copySlips = copySlips.concat(val);
         Vue.set(state, 'slips', copySlips);
@@ -369,18 +383,14 @@ export const store = new Vuex.Store({
       state.slips[index] = val;
       
     },
-    orderSlips(state) {
-      state.slips.sort(function compare(a, b) {
-        let dateA = new Date(a.dateOfPurchase);
-        let dateB = new Date(b.dateOfPurchase);
-        return dateB - dateA;
-      });
-    },
     setLastVisible(state, val) {
       state.lastVisible = val;
     },
     setLoadedAll(state, val) {
-      state.loadedAll = true;
+      state.loadedAll = val;
+    },
+    setOrder(state, val) {
+      state.order = val;
     }
   }
 });

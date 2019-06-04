@@ -20,6 +20,7 @@
         :busy="showLoader"
       />      
       <!-- <TextField v-model="filter" hint="Filter"/> -->
+      <Button class="filter-button" text="Order & Filter Options" @tap="openOrderAndFilterModal"/>
       <ListView
         row="1"
         for="slip in slips"
@@ -89,11 +90,11 @@ import { mapGetters } from "vuex";
 import LoginScreen from "./LoginScreen";
 import UploadSlipScreen from "./UploadSlipScreen";
 import { setTimeout } from "tns-core-modules/timer";
+import OrderAndFilter from "./OrderAndFilter";
 
 export default {
   data() {
     return {
-      filter: null
     };
   },
   computed: {
@@ -125,6 +126,12 @@ export default {
     },
     loadMore() {
       this.$store.dispatch("loadSlips");
+    },
+    changeOrder() {
+      this.$store.dispatch("changeOrder");
+    },
+    openOrderAndFilterModal() {
+      this.$showModal(OrderAndFilter)
     }
   },
   mounted() {
@@ -154,7 +161,7 @@ ListView {
 }
 .pill {
   font-size: 8%;
-  background-color: #687ad0;
+  background-color: #2a3b89;
   color: white;
   border-radius: 50%;
   padding: 3;
@@ -195,5 +202,11 @@ ListView {
   font-size: 19%;
   margin-top: 20;
   color: silver;
+}
+.filter-button {
+  text-transform: capitalize;
+  background-color: #2a3b89;
+  color: white;
+
 }
 </style>
