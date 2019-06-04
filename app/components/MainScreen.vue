@@ -19,13 +19,13 @@
         row="1"
         :busy="showLoader"
       />      
-      <TextField v-model="filter" hint="Filter"/>
+      <!-- <TextField v-model="filter" hint="Filter"/> -->
       <ListView
         row="1"
         for="slip in slips"
         @itemTap="openSlip"
+        @loadMoreItems="loadMore"
       >
-        
         <v-template>
             <StackLayout
               class="card-s"
@@ -72,7 +72,7 @@
         </v-template>
       </ListView>
       <Fab
-        @tap="addSlip()"
+        @tap="addSlip"
         row="1"
         icon="res://baseline_add_white_36"
         rippleColor="#f1f1f1"
@@ -122,6 +122,9 @@ export default {
       if (this.slips.length === 0) {
         this.$store.dispatch("loadSlips");
       } 
+    },
+    loadMore() {
+      this.$store.dispatch("loadSlips");
     }
   },
   mounted() {

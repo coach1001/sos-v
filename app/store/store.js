@@ -3,12 +3,16 @@ import Vuex from "vuex"
 import to from "await-to-js"
 import firebase from "nativescript-plugin-firebase";
 import * as fs from "tns-core-modules/file-system";
-import { TEST_SLIPS } from '../assets/test';
+import * as uniqid from 'uniqid';
+import { stat } from "fs";
 
 Vue.use(Vuex)
 
 export const store = new Vuex.Store({
   state: {
+    documentsPerLoad: 10,
+    loadedAll: false,
+    lastVisible: null,
     user: null,
     error: null,
     showLoader: false,
@@ -64,25 +68,49 @@ export const store = new Vuex.Store({
     },
     async loadSlips({ commit, state }) {
       let slips = [];
+      let query = null;
       commit("setLoader", true);
-      const query = await firebase.firestore.collection('slips')
-        .where("softDelete", "==", false)                
-        .where("ownerId" , "==", state.user.uid)
-        .orderBy("dateOfPurchase", "desc")          
-        .limit(150);                             
-      query.get()
+
+      if(state.lastVisible && !state.loadedAll) {
+        query = await firebase.firestore.collection('slips')
+          .where("softDelete", "==", false)                
+          .where("ownerId" , "==", state.user.uid)
+          .orderBy("dateOfPurchase", "desc")
+          .startAfter(state.lastVisible)
+          .limit(state.documentsPerLoad);
+      }
+      else if(!state.loadedAll){
+        query = await firebase.firestore.collection('slips')
+          .where("softDelete", "==", false)                
+          .where("ownerId" , "==", state.user.uid)
+          .orderBy("dateOfPurchase", "desc")
+          .limit(state.documentsPerLoad);
+      }
+      if(query) {
+        query.get()
         .then((querySnapShot) => {
-          querySnapShot.forEach(doc => {
-            slips.push({ ...doc.data(), id: doc.id });                        
-          });
-          commit("setLoader", false);
-          commit("setSlips", slips);          
+          if(!state.loadedAll) {
+            if(querySnapShot.docs.length < state.documentsPerLoad) {
+              commit("setLoadedAll", true);
+            }
+            let lastVisible = querySnapShot.docs[querySnapShot.docs.length-1];
+            querySnapShot.forEach(doc => {
+              slips.push({ ...doc.data(), id: doc.id });                        
+            });
+
+            commit("setLoader", false);
+            commit("setSlips", slips);
+            commit("setLastVisible", lastVisible);
+
+          }
         })
         .catch(err => {
           commit("setLoader", false);
           commit("setError", `Error retrieving slips. Relaunch application. Error : ${err}`);          
         });
+      } else {
         commit("setLoader", false);
+      }
     },
     async requestPasswordReset({ }, payload) {
       const [err, result] = await to(firebase
@@ -181,6 +209,7 @@ export const store = new Vuex.Store({
       let createResult;
       try {
         payload.ownerId = state.user.uid;
+        payload.uqId = uniqid();
         createResult = await firebase.firestore.collection('slips').add(payload);
       } catch (error) {        
         payload.files.map((file) => {
@@ -191,7 +220,6 @@ export const store = new Vuex.Store({
         });
         commit("setError", `Slip creation failed. Please try again. ${error}`);
       }
-      console.log('===============>', JSON.stringify(createResult.id));
       payload.id = createResult.id;
       commit("setCurrentSlip", payload);
       commit("pushNewSlip", payload);
@@ -246,7 +274,7 @@ export const store = new Vuex.Store({
         }
       }));      
       try {
-        payload.ownerId = state.user.uid;        
+        payload.ownerId = state.user.uid;     
         await firebase.firestore.collection('slips').doc(state.currentSlip.id).set(payload, {merge: true});
       } catch (error) {
         filesToUpload.map((file) => {
@@ -317,7 +345,13 @@ export const store = new Vuex.Store({
       state.currentSlip = val;
     },
     setSlips(state, val) {
-      state.slips = val;
+      if(state.slips.length > 0) {
+        let copySlips = [...state.slips];
+        copySlips = copySlips.concat(val);
+        Vue.set(state, 'slips', copySlips);
+      } else {
+        state.slips = val;
+      }
     },
     pushNewSlip(state, val) {
       state.slips.push(val);
@@ -337,10 +371,16 @@ export const store = new Vuex.Store({
     },
     orderSlips(state) {
       state.slips.sort(function compare(a, b) {
-        var dateA = new Date(a.dateOfPurchase);
-        var dateB = new Date(b.dateOfPurchase);
+        let dateA = new Date(a.dateOfPurchase);
+        let dateB = new Date(b.dateOfPurchase);
         return dateB - dateA;
       });
+    },
+    setLastVisible(state, val) {
+      state.lastVisible = val;
+    },
+    setLoadedAll(state, val) {
+      state.loadedAll = true;
     }
   }
 });

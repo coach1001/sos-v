@@ -2,6 +2,12 @@ import Vue from "nativescript-vue";
 Vue.registerElement("CardView", () => require('nativescript-cardview').CardView);
 Vue.registerElement("Fab", () => require("nativescript-floatingactionbutton").Fab);
 Vue.registerElement("FilterSelect", () => require("nativescript-filter-select").FilterSelect)
+Vue.registerElement("CheckBox", () => require("nativescript-checkbox").CheckBox, {
+	model: {
+		prop: "checked",
+		event: "checkedChange"
+	}
+});
 import LaunchScreen from "./components/LaunchScreen";
 import VueDevtools from "nativescript-vue-devtools";
 import firebase from "nativescript-plugin-firebase";

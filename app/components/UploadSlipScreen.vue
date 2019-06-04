@@ -26,19 +26,23 @@
             </StackLayout>
           </WrapLayout>
           <Label text="Picture type" class="tlabel"/>
-          <FilterSelect
-            modal_title="Picture type(s)"
-            hint="..."
-            height="100%"
-            :items="pictureTypes"
-            multiple="true"
-            :selected="pictureType"
-            allowSearch="false"
-            primary_key="name"
-            xbtn
-            @change="pictureTypeSelectChanged"
-            @close="pictureTypeSelectClosed"
-          ></FilterSelect>
+          <StackLayout style="padding-top: 20;">
+            <check-box
+              text="Product"
+              :checked="pictureTypeProduct"
+              @checkedChange="pictureTypeProduct = $event.value"
+            />
+            <check-box
+              text="Proof of purchase"
+              :checked="pictureTypeProofOfPurchase"
+              @checkedChange="pictureTypeProofOfPurchase = $event.value"
+            />
+            <check-box
+              text="Serial Number"
+              :checked="pictureTypeSerialNumber"
+              @checkedChange="pictureTypeSerialNumber = $event.value"
+            />
+          </StackLayout>
           <Label text="Item Description" class="tlabel"/>
           <TextField v-model="itemDescription"/>
           <Label text="Date of purchase" class="tlabel"/>
@@ -108,6 +112,10 @@ import * as imageSourceModule from "tns-core-modules/image-source";
 export default {
   data() {
     return {
+      pictureTypeProduct: null,
+      pictureTypeProofOfPurchase: null,
+      pictureTypeSerialNumber: null,    
+      isChecked: null,
       validationMessage: "",
       removeImages: [],
       images: [],
@@ -169,7 +177,7 @@ export default {
   },
   watch: {
     error(val) {
-      if (val) {        
+      if (val) {
         this.$store.commit("setError", null);
         alert(val);
       }
@@ -185,55 +193,69 @@ export default {
       this.mapStoreToSlip(this.currentSlip);
     }
   },
-  methods: {  
+  methods: {
     countImages() {
       let validAmount = true;
       let count = 0;
-      this.images.forEach((image) => {
-        if(image.softDelete === false) {
-          count+=1;
-        } 
+      this.images.forEach(image => {
+        if (image.softDelete === false) {
+          count += 1;
+        }
       });
-      if(count > 5) {
+      if (count > 5) {
         validAmount = false;
       }
       return validAmount;
     },
-    validateForm() {      
+    validateForm() {
       let formValid = true;
-      this.validationMessage = "";            
+      this.validationMessage = "";
       this.requiredFields.forEach(field => {
         if (field.type === "text") {
-          if(this[field.field] === "" ||  this[field.field] === null) {
+          if (this[field.field] === "" || this[field.field] === null) {
             this.validationMessage += `${field.error}\n`;
             formValid = false;
-          }            
+          }
         } else if (field.type === "array") {
-          if(field.minLength) {
-            if(this[field.field] && (this[field.field].length < field.minLength)) {
+          if (field.minLength) {
+            if (
+              this[field.field] &&
+              this[field.field].length < field.minLength
+            ) {
               this.validationMessage += `${field.error}\n`;
               formValid = false;
             }
-          } else if(field.maxLength) {
-            if(this[field.field] && (this[field.field].length > field.maxLength)) {
+          } else if (field.maxLength) {
+            if (
+              this[field.field] &&
+              this[field.field].length > field.maxLength
+            ) {
               this.validationMessage += `${field.error}\n`;
               formValid = false;
             }
           }
-        }        
-      });  
-      if(!this.countImages()) {
-        this.validationMessage += 'Only 5 images allowed per slip';
+        }
+      });
+      if (!this.countImages()) {
+        this.validationMessage += "Only 5 images allowed per slip";
         formValid = false;
-      }    
+      }
       return formValid;
     },
     mapStoreToSlip(currentSlip) {
       this.images = JSON.parse(JSON.stringify(currentSlip.files));
-      this.pictureType = currentSlip.pictureType.map(type => {
-        return {
-          name: type
-        };
+      this.pictureType = [];
+      currentSlip.pictureType.map(type => {
+        if(type === "Product") {
+          this.pictureTypeProduct = true;
+          this.pictureType.push("Product");
+        } else if(type === "Proof of purchase") {
+          this.pictureTypeProofOfPurchase = true;
+          this.pictureType.push("Proof of purchase");
+        } else if(type === "Serial number") {
+          this.pictureTypeSerialNumber = true;
+          this.pictureType.push("Serial number");
+        }
       });
       this.itemDescription = currentSlip.itemDescription;
       this.dateOfPurchase = currentSlip.dateOfPurchase;
@@ -257,9 +279,10 @@ export default {
     mapSlipToStore() {
       let payload = {};
       payload.files = JSON.parse(JSON.stringify(this.images));
-      payload.pictureType = this.pictureType.map(type => {
-        return type.name;
-      });
+      payload.pictureType = [];
+      if(this.pictureTypeProduct) payload.pictureType.push("Product")
+      if(this.pictureTypeProofOfPurchase) payload.pictureType.push("Proof of purchase");
+      if(this.pictureTypeSerialNumber) payload.pictureType.push("Serial number");
       payload.itemDescription = this.itemDescription;
       payload.dateOfPurchase = this.dateOfPurchase;
       payload.productCategory = this.productCategory;
@@ -291,11 +314,11 @@ export default {
         cancelButtonText: "No"
       }).then(result => {
         if (result) {
-          if(this.validateForm()) {            
-            this.$store.dispatch("updateSlip", this.mapSlipToStore());  
-          } else {            
-            this.$store.commit("setError", this.validationMessage);            
-          }          
+          if (this.validateForm()) {
+            this.$store.dispatch("updateSlip", this.mapSlipToStore());
+          } else {
+            this.$store.commit("setError", this.validationMessage);
+          }
         }
       });
     },
@@ -312,18 +335,24 @@ export default {
       this.$photoViewer.showViewer(images);
     },
     createSlip() {
-      if(this.validateForm()) {
+      
+      this.pictureType = [];
+      if(this.pictureTypeProduct) this.pictureType.push("Product")
+      if(this.pictureTypeProofOfPurchase) this.pictureType.push("Proof of purchase");
+      if(this.pictureTypeSerialNumber) this.pictureType.push("Serial number");
+
+      if (this.validateForm()) {
         this.$store.dispatch("createSlip", this.mapSlipToStore());
       } else {
         this.$store.commit("setError", this.validationMessage);
-      }      
+      }
     },
-    removeImage(img) {      
+    removeImage(img) {
       let deleteIdx = [];
       this.images.forEach((image, idx) => {
-        if(image.name === img.name) {
+        if (image.name === img.name) {
           this.images[idx].softDelete = true;
-          if(image.type === 'local') {
+          if (image.type === "local") {
             deleteIdx.push(idx);
           }
         }
@@ -331,7 +360,7 @@ export default {
       deleteIdx = deleteIdx.reverse();
       deleteIdx.forEach(idx => {
         this.images.splice(idx, 1);
-      })
+      });
     },
     addImageOrFile() {
       let uploadOptions = ["File System"];
