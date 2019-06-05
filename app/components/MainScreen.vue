@@ -45,6 +45,10 @@
                     v-for="(pic, idx) in slip.pictureType"
                     :text="pic"
                   />
+                  <Label
+                    class="pill-c"
+                    :text="slip.productCategory"
+                  />
                 </WrapLayout>
               </StackLayout>
               <StackLayout width="50%">
@@ -163,6 +167,16 @@ ListView {
   font-size: 8%;
   background-color: #2a3b89;
   color: white;
+  border-radius: 50%;
+  padding: 3;
+  margin-top: 3;
+  margin-right: 3;
+  margin-bottom: 3;
+}
+.pill-c {
+  font-size: 8%;
+  background-color: orange;
+  color: black;
   border-radius: 50%;
   padding: 3;
   margin-top: 3;

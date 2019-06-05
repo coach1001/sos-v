@@ -24,26 +24,10 @@
           />
         </StackLayout>
         <Label text="Filters" class="clabel"/>
-        <Label text="Product type" class="tlabel"/>
-        <StackLayout>
-          <check-box
-            text="Product"
-            :checked="pictureTypeProduct"
-            @checkedChange="pictureTypeProduct = $event.value"
-          />
-          <check-box
-            text="Proof of purchase"
-            :checked="pictureTypeProofOfPurchase"
-            @checkedChange="pictureTypeProofOfPurchase = $event.value"
-          />
-          <check-box
-            text="Serial Number"
-            :checked="pictureTypeSerialNumber"
-            @checkedChange="pictureTypeSerialNumber = $event.value"
-          />
-        </StackLayout>
+        <Label text="Picture type" class="tlabel"/>
+        <TextField @tap="openPictureTypeList()" v-model="pictureType" editable="false"/>
         <Label text="Product catergory" class="tlabel"/>
-        <TextField @tap="openProductCatergoryList()" v-model="productCategory" class="category" editable="false"/>
+        <TextField @tap="openProductCatergoryList()" v-model="productCategory" editable="false"/>
         <StackLayout orientation="horizontal" style="margin-top: 5;">
           <Button class="filter-button" text="Close" @tap="$modal.close();"/>
           <Button class="filter-button" text="Clear" @tap="defaultValues"/>
@@ -61,9 +45,6 @@ import { mapGetters } from 'vuex';
 export default {
   data() {
     return {
-      pictureTypeProduct: false,
-      pictureTypeProofOfPurchase: false,
-      pictureTypeSerialNumber: false,
       productCategories: [
         "Home small appliance",
         "Home major appliance",
@@ -72,6 +53,12 @@ export default {
         "Annual Licenses",
         "Other"
       ],
+      pictureTypes: [
+        "Product",
+        "Proof of purchase",
+        "Serial number"
+      ],
+      pictureType: null,
       productCategory: null,
       descending: null,
       ascending: null
@@ -103,20 +90,10 @@ export default {
     },
     apply() {
       const order = this.descending ? "desc" : "asc";
-      let pictureTypeFilter = [];
-      if(this.pictureTypeProduct) {
-        pictureTypeFilter.push("Product");
-      }
-      if(this.pictureTypeProofOfPurchase) {
-        pictureTypeFilter.push("Proof of purchase");
-      }
-      if(this.pictureTypeSerialNumber) {
-        pictureTypeFilter.push("Serial number");
-      }
       this.$store.dispatch("applyFilter", {
         order: order,
         productCategoryFilter: this.productCategory,
-        pictureTypeFilter: pictureTypeFilter
+        pictureTypeFilter: this.pictureType
       });
       this.$modal.close();
     },
@@ -131,6 +108,17 @@ export default {
         }
       });
     },
+    openPictureTypeList() {
+      action(
+        "Select picture type...",
+        "Close",
+        this.pictureTypes
+      ).then(result => {
+        if (this.pictureTypes.includes(result)) {
+          this.pictureType = result;
+        }
+      });
+    },
     initializeValues() {
       const order = this.$store.getters.getOrder;
       if(order === "desc") {
@@ -140,21 +128,7 @@ export default {
         this.descending = false;
         this.ascending = true;
       }
-      
-      const pictureType = this.$store.getters.getPictureTypeFilter;
-      this.pictureTypeProduct = false;
-      this.pictureTypeProofOfPurchase = false;
-      this.pictureTypeSerialNumber = false;
-      pictureType.map(type => {
-        if(type === "Product") {
-          this.pictureTypeProduct = true;
-        } else if(type === "Proof of purchase") {
-          this.pictureTypeProofOfPurchase = true;
-        } else if(type === "Serial number") {
-          this.pictureTypeSerialNumber = true;
-        }
-      });
-
+      this.pictureType = this.$store.getters.getPictureTypeFilter;
       this.productCategory = this.$store.getters.getProductCategoryFilter;
     }
   }, 

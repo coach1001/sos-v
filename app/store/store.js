@@ -7,9 +7,106 @@ import * as uniqid from 'uniqid';
 
 Vue.use(Vuex)
 
+const createFirebaseQueryWithStartAfter = (
+  pictureTypeFilter,
+  productCategoryFilter,
+  order,
+  uid,
+  limit,
+  lastVisible
+  ) => {
+  console.log(pictureTypeFilter,
+    productCategoryFilter,
+    order,
+    uid,
+    limit,
+    lastVisible);
+
+  let query;
+  if(pictureTypeFilter && productCategoryFilter) {
+    query = firebase.firestore.collection('slips')
+      .where("softDelete", "==", false)                
+      .where("ownerId" , "==", uid)
+      .where("productCategory" , "==", productCategoryFilter)
+      .where("pictureType", "array-contains", pictureTypeFilter)
+      .orderBy("dateOfPurchase", order)
+      .startAfter(lastVisible)
+      .limit(limit);
+  } else if(productCategoryFilter) {
+    query = firebase.firestore.collection('slips')
+      .where("softDelete", "==", false)                
+      .where("ownerId" , "==", uid)
+      .where("productCategory" , "==", productCategoryFilter)
+      .orderBy("dateOfPurchase", order)
+      .startAfter(lastVisible)
+      .limit(limit);
+  } else  if(pictureTypeFilter) {
+    query = firebase.firestore.collection('slips')
+      .where("softDelete", "==", false)                
+      .where("ownerId" , "==", uid)
+      .where("pictureType", "array-contains", pictureTypeFilter)
+      .orderBy("dateOfPurchase", order)
+      .startAfter(lastVisible)
+      .limit(limit);
+  } else {
+    query = firebase.firestore.collection('slips')
+    .where("softDelete", "==", false)                
+    .where("ownerId" , "==", uid)
+    .orderBy("dateOfPurchase", order)
+    .startAfter(lastVisible)
+    .limit(limit);
+  }
+  return query;
+}
+
+const createFirebaseQueryWithoutStartAfter = (
+  pictureTypeFilter,
+  productCategoryFilter,
+  order,
+  uid,
+  limit
+  ) => {
+    console.log(pictureTypeFilter,
+      productCategoryFilter,
+      order,
+      uid,
+      limit);
+  let query;
+  if(pictureTypeFilter && productCategoryFilter) {
+    query = firebase.firestore.collection('slips')
+      .where("softDelete", "==", false)                
+      .where("ownerId" , "==", uid)
+      .where("productCategory" , "==", productCategoryFilter)
+      .where("pictureType", "array-contains", pictureTypeFilter)
+      .orderBy("dateOfPurchase", order)
+      .limit(limit);
+  } else if(productCategoryFilter) {
+    query = firebase.firestore.collection('slips')
+      .where("softDelete", "==", false)                
+      .where("ownerId" , "==", uid)
+      .where("productCategory" , "==", productCategoryFilter)
+      .orderBy("dateOfPurchase", order)
+      .limit(limit);
+  } else  if(pictureTypeFilter) {
+    query = firebase.firestore.collection('slips')
+      .where("softDelete", "==", false)                
+      .where("ownerId" , "==", uid)
+      .where("pictureType", "array-contains", pictureTypeFilter)
+      .orderBy("dateOfPurchase", order)
+      .limit(limit);
+  } else {
+    query = firebase.firestore.collection('slips')
+    .where("softDelete", "==", false)                
+    .where("ownerId" , "==", uid)
+    .orderBy("dateOfPurchase", order)
+    .limit(limit);
+  }
+  return query;
+}
+
 export const store = new Vuex.Store({
   state: {
-    pictureTypeFilter: [],
+    pictureTypeFilter: null,
     productCategoryFilter: null,
     order: "desc",
     documentsPerLoad: 10,
@@ -77,21 +174,20 @@ export const store = new Vuex.Store({
       commit("setLoader", true);
 
       if(state.lastVisible && !state.loadedAll) {
-        query = await firebase.firestore.collection('slips')
-          .where("softDelete", "==", false)                
-          .where("ownerId" , "==", state.user.uid)
-          .where("productCategory", "==", state.productCategoryFilter ? state.productCategoryFilter : "*")
-          .orderBy("dateOfPurchase", state.order)
-          .startAfter(state.lastVisible)
-          .limit(state.documentsPerLoad);
-      }
-      else if(!state.loadedAll){
-        query = await firebase.firestore.collection('slips')
-          .where("softDelete", "==", false)                
-          .where("ownerId" , "==", state.user.uid)
-          .where("productCategory", "==", state.productCategoryFilter ? state.productCategoryFilter : "*")
-          .orderBy("dateOfPurchase", state.order)
-          .limit(state.documentsPerLoad);
+        query = await createFirebaseQueryWithStartAfter(
+          state.pictureTypeFilter,
+          state.productCategoryFilter,
+          state.order,
+          state.user.uid,
+          state.documentsPerLoad,
+          state.lastVisible);
+      } else if(!state.loadedAll){
+        query = await createFirebaseQueryWithoutStartAfter(
+          state.pictureTypeFilter,
+          state.productCategoryFilter,
+          state.order,
+          state.user.uid,
+          state.documentsPerLoad);
       }
       if(query) {
         query.get()
@@ -104,7 +200,6 @@ export const store = new Vuex.Store({
             querySnapShot.forEach(doc => {
               slips.push({ ...doc.data(), id: doc.id });                        
             });
-
             commit("setLoader", false);
             commit("setSlips", slips);
             commit("setLastVisible", lastVisible);
@@ -328,9 +423,9 @@ export const store = new Vuex.Store({
       state.order === "desc" ? commit("setOrder", "asc") : commit("setOrder", "desc");
       dispatch("clearSlips");
     },
-    defaultFilter({ dispatch, commit }) {
+    defaultFilter({ commit }) {
       commit("setOrder", "desc");
-      commit("setPictureTypeFilter", []);
+      commit("setPictureTypeFilter", null);
       commit("setProductCategoryFilter", null);
     },
     applyFilter({ dispatch, commit }, payload) {
@@ -409,7 +504,7 @@ export const store = new Vuex.Store({
       state.order = val;
     },
     setPictureTypeFilter(state, val) {
-      Vue.set(state, 'pictureTypeFilter', val);
+      state.pictureTypeFilter = val;
     },
     setProductCategoryFilter(state, val) {
       state.productCategoryFilter = val;
