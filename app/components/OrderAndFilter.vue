@@ -15,12 +15,12 @@
           <check-box
             text="Newest first"
             :checked="descending"
-            @checkedChange="descending = $event.value;"
+            @checkedChange="checkChange($event.value, 'desc')"
           />
           <check-box
             text="Oldest first"
             :checked="ascending"
-            @checkedChange="ascending = $event.value;"
+            @checkedChange="checkChange($event.value, 'asc')"
           />
         </StackLayout>
         <Label text="Filters" class="clabel"/>
@@ -44,9 +44,9 @@
         </StackLayout>
         <Label text="Product catergory" class="tlabel"/>
         <TextField @tap="openProductCatergoryList()" v-model="productCategory" class="category" editable="false"/>
-        <StackLayout orientation="horizontal">
+        <StackLayout orientation="horizontal" style="margin-top: 5;">
           <Button class="filter-button" text="Close" @tap="$modal.close();"/>
-          <Button class="filter-button" text="Default" @tap="defaultValues"/>
+          <Button class="filter-button" text="Clear" @tap="defaultValues"/>
           <Button class="filter-button" text="Apply" @tap="apply"/>
         </StackLayout>
       </FlexboxLayout>
@@ -73,19 +73,52 @@ export default {
         "Other"
       ],
       productCategory: null,
-      pictureType: [],
       descending: null,
       ascending: null
     };
   },
   methods: {
+    checkChange(val, direction) {
+      if(direction === "desc") {
+        if(val) {
+          this.descending = true;
+          this.ascending = false;
+        } else {
+          this.descending = false;
+          this.ascending = true;
+        }
+      } else if(direction === "asc") {
+        if(val) {
+          this.descending = false;
+          this.ascending = true;
+        } else {
+          this.descending = true;
+          this.ascending = false;
+        }
+      }
+    },
     defaultValues() {
+      this.$store.dispatch("defaultFilter");
+      this.initializeValues();      
     },
     apply() {
+      const order = this.descending ? "desc" : "asc";
+      let pictureTypeFilter = [];
+      if(this.pictureTypeProduct) {
+        pictureTypeFilter.push("Product");
+      }
+      if(this.pictureTypeProofOfPurchase) {
+        pictureTypeFilter.push("Proof of purchase");
+      }
+      if(this.pictureTypeSerialNumber) {
+        pictureTypeFilter.push("Serial number");
+      }
+      this.$store.dispatch("applyFilter", {
+        order: order,
+        productCategoryFilter: this.productCategory,
+        pictureTypeFilter: pictureTypeFilter
+      });
       this.$modal.close();
-    },
-    changeOrder(val) {
-
     },
     openProductCatergoryList() {
       action(
@@ -98,12 +131,35 @@ export default {
         }
       });
     },
-  },
-  mounted() {
-    this.descending = this.$store.getters.getOrder === "desc" ? true : false;
-    this.ascending = this.$store.getters.getOrder === "asc" ? true : false;
-    this.productCategory = this.$store.getters.getProductCategoryFilter;
-    this.pictureType = this.$store.getters.getPictureTypeFilter;
+    initializeValues() {
+      const order = this.$store.getters.getOrder;
+      if(order === "desc") {
+        this.descending = true;
+        this.ascending = false;  
+      } else if(order === "asc") {
+        this.descending = false;
+        this.ascending = true;
+      }
+      
+      const pictureType = this.$store.getters.getPictureTypeFilter;
+      this.pictureTypeProduct = false;
+      this.pictureTypeProofOfPurchase = false;
+      this.pictureTypeSerialNumber = false;
+      pictureType.map(type => {
+        if(type === "Product") {
+          this.pictureTypeProduct = true;
+        } else if(type === "Proof of purchase") {
+          this.pictureTypeProofOfPurchase = true;
+        } else if(type === "Serial number") {
+          this.pictureTypeSerialNumber = true;
+        }
+      });
+
+      this.productCategory = this.$store.getters.getProductCategoryFilter;
+    }
+  }, 
+  created() {
+    this.initializeValues();
   }
 };
 </script>
@@ -114,12 +170,12 @@ export default {
 }
 .tlabel {
   font-size: 15%;
-  margin-top: 20;
+  margin-top: 10;
   color: silver;
 }
 .clabel {
   font-size: 15%;
-  margin-top: 20;
+  margin-top: 10;
   color: black;
 }
 .margin-0 {

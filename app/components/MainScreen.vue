@@ -200,7 +200,7 @@ ListView {
 }
 .tlabel {
   font-size: 19%;
-  margin-top: 20;
+  /* margin-top: 20; */
   color: silver;
 }
 .filter-button {

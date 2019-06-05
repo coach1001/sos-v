@@ -26,7 +26,7 @@
             </StackLayout>
           </WrapLayout>
           <Label text="Picture type" class="tlabel"/>
-          <StackLayout style="padding-top: 20;">
+          <StackLayout>
             <check-box
               text="Product"
               :checked="pictureTypeProduct"
@@ -481,7 +481,7 @@ TextField {
 }
 .tlabel {
   font-size: 19%;
-  margin-top: 20;
+  margin-top: 10;
   color: silver;
 }
 .slabel {

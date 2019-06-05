@@ -80,6 +80,7 @@ export const store = new Vuex.Store({
         query = await firebase.firestore.collection('slips')
           .where("softDelete", "==", false)                
           .where("ownerId" , "==", state.user.uid)
+          .where("productCategory", "==", state.productCategoryFilter ? state.productCategoryFilter : "*")
           .orderBy("dateOfPurchase", state.order)
           .startAfter(state.lastVisible)
           .limit(state.documentsPerLoad);
@@ -88,6 +89,7 @@ export const store = new Vuex.Store({
         query = await firebase.firestore.collection('slips')
           .where("softDelete", "==", false)                
           .where("ownerId" , "==", state.user.uid)
+          .where("productCategory", "==", state.productCategoryFilter ? state.productCategoryFilter : "*")
           .orderBy("dateOfPurchase", state.order)
           .limit(state.documentsPerLoad);
       }
@@ -325,6 +327,20 @@ export const store = new Vuex.Store({
     changeOrder({ state, dispatch, commit }) {
       state.order === "desc" ? commit("setOrder", "asc") : commit("setOrder", "desc");
       dispatch("clearSlips");
+    },
+    defaultFilter({ dispatch, commit }) {
+      commit("setOrder", "desc");
+      commit("setPictureTypeFilter", []);
+      commit("setProductCategoryFilter", null);
+    },
+    applyFilter({ dispatch, commit }, payload) {
+      const order = payload.order;
+      const pictureTypeFilter = payload.pictureTypeFilter;
+      const productCategoryFilter = payload.productCategoryFilter;
+      commit("setOrder", order);
+      commit("setPictureTypeFilter", pictureTypeFilter);
+      commit("setProductCategoryFilter", productCategoryFilter);
+      dispatch("clearSlips");
     }
   },
   mutations: {
@@ -391,6 +407,12 @@ export const store = new Vuex.Store({
     },
     setOrder(state, val) {
       state.order = val;
+    },
+    setPictureTypeFilter(state, val) {
+      Vue.set(state, 'pictureTypeFilter', val);
+    },
+    setProductCategoryFilter(state, val) {
+      state.productCategoryFilter = val;
     }
   }
 });
