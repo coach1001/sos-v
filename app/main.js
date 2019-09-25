@@ -2,7 +2,7 @@ import Vue from "nativescript-vue";
 Vue.registerElement("CardView", () => require('nativescript-cardview').CardView);
 Vue.registerElement("Fab", () => require("nativescript-floatingactionbutton").Fab);
 Vue.registerElement("FilterSelect", () => require("nativescript-filter-select").FilterSelect)
-Vue.registerElement("CheckBox", () => require("nativescript-checkbox").CheckBox, {
+Vue.registerElement("CheckBox", () => require("@nstudio/nativescript-checkbox").CheckBox, {
 	model: {
 		prop: "checked",
 		event: "checkedChange"
